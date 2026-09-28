@@ -1,7 +1,7 @@
 /** Global booth settings. Change values here to tune the experience. */
 
-/** Flip the final photos horizontally so they match the mirrored preview. */
-export const MIRROR_OUTPUT = true;
+/** Flip the final photos horizontally like the mirrored preview. false = true-to-life (text reads correctly). */
+export const MIRROR_OUTPUT = false;
 
 /** Number of shots per session. The frame slots should match this number. */
 export const SHOT_COUNT = 4;
