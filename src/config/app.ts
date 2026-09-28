@@ -6,8 +6,11 @@ export const MIRROR_OUTPUT = true;
 /** Number of shots per session. The frame slots should match this number. */
 export const SHOT_COUNT = 4;
 
-/** Countdown before each shot (seconds). */
-export const COUNTDOWN_SECONDS = 5;
+/** Countdown before the first shot (seconds). */
+export const COUNTDOWN_FIRST_SECONDS = 5;
+
+/** Countdown before shots 2, 3 and 4 (seconds). */
+export const COUNTDOWN_NEXT_SECONDS = 3;
 
 /** Pause after each shot before the next countdown starts (ms). */
 export const PAUSE_BETWEEN_SHOTS_MS = 1200;

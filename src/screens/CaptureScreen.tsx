@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { COUNTDOWN_SECONDS, MIRROR_OUTPUT, PAUSE_BETWEEN_SHOTS_MS, SHOT_COUNT } from '../config/app';
+import {
+  COUNTDOWN_FIRST_SECONDS,
+  COUNTDOWN_NEXT_SECONDS,
+  MIRROR_OUTPUT,
+  PAUSE_BETWEEN_SHOTS_MS,
+  SHOT_COUNT,
+} from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { CameraPicker } from '../components/CameraPicker';
 import { MagicLoader } from '../components/MagicLoader';
@@ -70,7 +76,8 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
     try {
       for (let i = 0; i < SHOT_COUNT; i++) {
         setShotIndex(i);
-        for (let c = COUNTDOWN_SECONDS; c > 0; c--) {
+        const seconds = i === 0 ? COUNTDOWN_FIRST_SECONDS : COUNTDOWN_NEXT_SECONDS;
+        for (let c = seconds; c > 0; c--) {
           setCount(c);
           await sleep(1000);
           if (!aliveRef.current) throw new Error('aborted');
@@ -155,7 +162,7 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
             <div className="panel-status">
               <p className="panel-title">{frame.name}</p>
               <p className="panel-text">
-                ถ่ายทั้งหมด {SHOT_COUNT} ช็อต นับถอยหลัง {COUNTDOWN_SECONDS} วินาทีก่อนแต่ละช็อต
+                ถ่ายทั้งหมด {SHOT_COUNT} ช็อต ช็อตแรกนับถอยหลัง {COUNTDOWN_FIRST_SECONDS} วินาที ช็อตถัดไป {COUNTDOWN_NEXT_SECONDS} วินาที
               </p>
               {failed && <p className="panel-error">ถ่ายไม่สำเร็จ ลองกดเริ่มใหม่อีกครั้ง</p>}
             </div>
