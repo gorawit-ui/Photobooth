@@ -102,7 +102,8 @@ export default function App() {
         const composed = composeFrame(frame, assets, canvases, { mirror: MIRROR_OUTPUT });
         const jpg = await canvasToBlob(composed, 'image/jpeg', JPG_QUALITY);
         releaseCanvas(composed);
-        const gif = await createGif(frame, assets, canvases, MIRROR_OUTPUT);
+        const slot = frame.slots[0];
+        const gif = await createGif(canvases, slot.width / slot.height, MIRROR_OUTPUT);
         const wait = MIN_LOADING_MS - (performance.now() - started);
         if (wait > 0) await new Promise((r) => window.setTimeout(r, wait));
         if (id !== genId.current) return;

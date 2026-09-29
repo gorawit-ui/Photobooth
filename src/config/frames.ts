@@ -28,21 +28,10 @@ export interface FrameConfig {
   size?: { width: number; height: number };
   /** Photo corner radius in frame pixels. Default SLOT_RADIUS. */
   slotRadius?: number;
-  /**
-   * GIF style. 'single' (default): each GIF frame shows one shot filling
-   * `gifSlot`. 'build': the template itself, adding one shot per GIF frame,
-   * so photos stay inside their slots and never cover the frame lines.
-   */
-  gifMode?: 'single' | 'build';
   /** Optional transparent PNG drawn on top of everything. */
   overlayImage?: string;
   /** Where the 4 shots go, in shot order. */
   slots: Slot[];
-  /**
-   * Optional area used by the animated GIF, where each GIF frame shows one
-   * shot at a time. Defaults to the bounding box of all slots.
-   */
-  gifSlot?: Slot;
 }
 
 export const DEFAULT_SLOTS: Slot[] = [
@@ -124,7 +113,6 @@ export async function loadFrameCatalog(): Promise<FrameConfig[]> {
         size: { width, height },
         slots,
         slotRadius: 0,
-        gifMode: 'build',
       };
     });
     return [...templates, ...FRAMES];

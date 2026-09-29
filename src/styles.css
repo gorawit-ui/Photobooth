@@ -674,7 +674,8 @@ h1, h2, h3, p { margin: 0; }
   display: block;
   height: min(calc(100 * var(--vh) - 250px), 66vw);
   width: auto;
-  aspect-ratio: 2 / 3;
+  /* natural ratio once loaded (composite 2:3, GIF ~5:6); 2:3 placeholder before */
+  aspect-ratio: auto 2 / 3;
   border-radius: 14px;
   box-shadow: 0 0 0 2px rgba(246, 215, 126, 0.5), 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 60px rgba(120, 140, 255, 0.25);
 }

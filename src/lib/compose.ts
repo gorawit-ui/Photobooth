@@ -257,27 +257,18 @@ export function composeFrame(
   return canvas;
 }
 
-/** Bounding box of all slots — the default area for a single GIF shot. */
-export function gifSlotOf(frame: FrameConfig): Slot {
-  if (frame.gifSlot) return frame.gifSlot;
-  const x = Math.min(...frame.slots.map((s) => s.x));
-  const y = Math.min(...frame.slots.map((s) => s.y));
-  const r = Math.max(...frame.slots.map((s) => s.x + s.width));
-  const b = Math.max(...frame.slots.map((s) => s.y + s.height));
-  return { x, y, width: r - x, height: b - y };
-}
-
-/** One GIF frame: the frame artwork with a single shot filling the GIF slot. */
-export function composeSingleShot(
-  frame: FrameConfig,
-  assets: FrameAssets,
+/**
+ * A single shot on its own, no frame: center-cropped (cover) to the canvas
+ * size. Used for the GIF.
+ */
+export function composeShotOnly(
   shot: Drawable,
   options: { width: number; height: number; mirror: boolean },
 ): HTMLCanvasElement {
   const canvas = createCanvas(options.width, options.height);
-  const ctx = prepare(canvas, frame);
-  drawBackground(ctx, frame, assets);
-  drawCover(ctx, shot, gifSlotOf(frame), options.mirror, frame.slotRadius ?? SLOT_RADIUS);
-  drawOverlay(ctx, frame, assets);
+  const ctx = get2d(canvas);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  drawCover(ctx, shot, { x: 0, y: 0, width: options.width, height: options.height }, options.mirror, 0);
   return canvas;
 }

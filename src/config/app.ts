@@ -25,9 +25,11 @@ export const OUTPUT_HEIGHT = 1800;
 /** JPG export quality (0–1). */
 export const JPG_QUALITY = 0.92;
 
-/** GIF settings. */
+/**
+ * GIF settings. The GIF contains only the 4 photos (no frame). Height follows
+ * the photo slot's aspect ratio, i.e. the same crop as the camera preview.
+ */
 export const GIF_WIDTH = 600;
-export const GIF_HEIGHT = 900;
 export const GIF_FRAME_DELAY_MS = 600;
 
 /** Corner radius of each photo slot, in output pixels (1200x1800 space). */
