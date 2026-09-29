@@ -8,6 +8,7 @@ import {
 } from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { CameraPicker } from '../components/CameraPicker';
+import { MagicSparkles } from '../components/MagicSparkles';
 import { MagicLoader } from '../components/MagicLoader';
 import { PermissionHelp } from '../components/PermissionHelp';
 import type { CameraState } from '../hooks/useCamera';
@@ -16,11 +17,14 @@ import { useSpacebar } from '../hooks/useSpacebar';
 import { captureFrame, waitForVideo } from '../lib/camera';
 import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isTouchDevice } from '../lib/device';
+import { sound } from '../lib/sound';
 import type { Shot } from '../types';
 
 interface Props {
   frame: FrameConfig;
   camera: CameraState;
+  /** Called right after each shot is taken (index 0 = a new run). */
+  onShot?: (shot: Shot, index: number) => void;
   onComplete: (shots: Shot[]) => void;
   onBack: () => void;
   /** True while the countdown sequence runs (pauses the idle timer). */
@@ -38,7 +42,7 @@ function disposeShots(shots: Shot[]) {
   });
 }
 
-export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange }: Props) {
+export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBusyChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const aliveRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('ready');
@@ -79,6 +83,7 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
         const seconds = i === 0 ? COUNTDOWN_FIRST_SECONDS : COUNTDOWN_NEXT_SECONDS;
         for (let c = seconds; c > 0; c--) {
           setCount(c);
+          sound.tick(c === 1);
           await sleep(1000);
           if (!aliveRef.current) throw new Error('aborted');
         }
@@ -87,12 +92,14 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
         if (!video) throw new Error('no video');
         await waitForVideo(video);
         const canvas = captureFrame(video);
+        sound.shutter();
         setFlashKey((k) => k + 1);
         const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
         const shot: Shot = { canvas, blob, url: URL.createObjectURL(blob) };
         taken.push(shot);
         if (!aliveRef.current) throw new Error('aborted');
         setShots([...taken]);
+        onShot?.(shot, i);
         await sleep(i < SHOT_COUNT - 1 ? PAUSE_BETWEEN_SHOTS_MS : 800);
         if (!aliveRef.current) throw new Error('aborted');
       }
@@ -108,7 +115,7 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
       setPhase('ready');
       setFailed(true);
     }
-  }, [phase, camera.status, onBusyChange, onComplete]);
+  }, [phase, camera.status, onBusyChange, onShot, onComplete]);
 
   useSpacebar(start, phase === 'ready' && camera.status === 'ready');
 
@@ -130,6 +137,7 @@ export function CaptureScreen({ frame, camera, onComplete, onBack, onBusyChange 
           style={fit ? { width: fit.width, height: fit.height } : { visibility: 'hidden' }}
         >
           <video ref={videoRef} className="preview-video" autoPlay playsInline muted />
+          <MagicSparkles burstKey={flashKey} />
           <div className="preview-frame" aria-hidden="true" />
           {camera.status !== 'ready' && (
             <div className="preview-overlay">

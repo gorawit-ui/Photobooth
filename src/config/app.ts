@@ -41,3 +41,20 @@ export const CAMERA_IDEAL_HEIGHT = 1080;
 
 /** Prefix for downloaded files: magical-booth-YYYYMMDD-HHmmss.jpg */
 export const FILE_PREFIX = 'magical-booth';
+
+/**
+ * Person-segmentation model for the magic background (in /public/models).
+ * The multiclass model (hair / skin / clothes / background) cuts hair and
+ * white clothing against a white wall much more cleanly than the small
+ * selfie model, at ~16 MB and ~0.4 s per photo.
+ */
+export const SEGMENTATION_MODEL = '/models/selfie_multiclass_256x256.tflite';
+
+/**
+ * Magic background: people are cut out and placed on this scene (JPG only;
+ * the GIF keeps the real room). Guests can switch back on the result screen.
+ */
+export const MAGIC_SCENE_IMAGE = '/backgrounds/magic-castle.jpg';
+export const MAGIC_SCENE_DEFAULT_ON = true;
+/** Shots where less than this share of pixels is a person keep the real background. */
+export const MIN_PERSON_COVERAGE = 0.02;
