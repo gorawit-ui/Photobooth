@@ -325,18 +325,37 @@ h1, h2, h3, p { margin: 0; }
 
 .frame-screen { justify-content: space-between; }
 .frame-grid {
-  --card-w: min(24vw, calc((100 * var(--vh) - 330px) * 0.6667), 280px);
+  /* --n (frame count) and --cols-p (columns in portrait) are set inline */
+  --gap: clamp(12px, 2.4vmin, 32px);
+  /* landscape: one row of cards that fits both the width and the height */
+  --card-w: min(
+    280px,
+    calc((100 * var(--vh) - 330px) * 0.6667),
+    calc((100vw - 80px - (var(--n, 3) - 1) * var(--gap)) / var(--n, 3))
+  );
   flex: 1;
+  min-height: 0;
   width: 100%;
+  display: flex;
+  padding: 6px;
+}
+/* margin: auto centres the cards but, unlike align-content: center,
+   keeps overflowing rows reachable by scrolling */
+.frame-grid-inner {
+  margin: auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-content: center;
-  gap: clamp(14px, 3vmin, 36px);
-  padding: 6px;
+  gap: var(--gap);
 }
 @media (orientation: portrait) {
-  .frame-grid { --card-w: min(40vw, calc((100 * var(--vh) - 380px) / 2 * 0.6667), 300px); }
+  .frame-grid {
+    --card-w: min(
+      300px,
+      calc((100 * var(--vh) - 380px) / 2 * 0.6667),
+      calc((100vw - 60px - (var(--cols-p, 2) - 1) * var(--gap)) / var(--cols-p, 2))
+    );
+  }
 }
 .frame-card {
   appearance: none;
@@ -734,4 +753,41 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .star, .btn-hero, .magic-loader p, .magic-orb::after { animation: none; }
   .screen { animation: none; }
+}
+
+/* ---------- Print: composed photo on 4x6 in portrait ---------- */
+
+#print-sheet { display: none; }
+
+@page {
+  size: 4in 6in;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    position: static;
+    width: 4in;
+    height: 6in;
+    overflow: hidden;
+    background: #fff;
+  }
+  #root { display: none; }
+  #print-sheet {
+    display: block;
+    width: 4in;
+    height: 6in;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  #print-sheet img {
+    display: block;
+    width: 4in;
+    height: 6in;
+    object-fit: contain;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

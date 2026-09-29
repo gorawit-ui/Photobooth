@@ -1,5 +1,5 @@
 import { OUTPUT_HEIGHT, OUTPUT_WIDTH, SLOT_RADIUS } from '../config/app';
-import type { FrameConfig, Slot } from '../config/frames';
+import { frameSize, type FrameConfig, type Slot } from '../config/frames';
 import { createCanvas, get2d, loadImage } from './canvas';
 
 /** Anything drawImage() accepts with known pixel dimensions. */
@@ -63,7 +63,13 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, s: Slot, r: number) {
 }
 
 /** Center-crop `src` like CSS object-fit: cover into the slot, clipped to rounded corners. */
-function drawCover(ctx: CanvasRenderingContext2D, src: Drawable, slot: Slot, mirror: boolean) {
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  src: Drawable,
+  slot: Slot,
+  mirror: boolean,
+  radius: number,
+) {
   const { w: sw, h: sh } = sizeOf(src);
   if (!sw || !sh) return;
   const targetRatio = slot.width / slot.height;
@@ -75,7 +81,7 @@ function drawCover(ctx: CanvasRenderingContext2D, src: Drawable, slot: Slot, mir
   const cy = (sh - ch) / 2;
 
   ctx.save();
-  roundedRectPath(ctx, slot, SLOT_RADIUS);
+  roundedRectPath(ctx, slot, radius);
   ctx.clip();
   if (mirror) {
     // The crop is centered, so mirroring after cropping equals cropping a mirrored image.
@@ -89,9 +95,9 @@ function drawCover(ctx: CanvasRenderingContext2D, src: Drawable, slot: Slot, mir
 }
 
 /** Empty slot used in frame previews. */
-function drawPlaceholder(ctx: CanvasRenderingContext2D, slot: Slot, index: number) {
+function drawPlaceholder(ctx: CanvasRenderingContext2D, slot: Slot, index: number, radius: number) {
   ctx.save();
-  roundedRectPath(ctx, slot, SLOT_RADIUS);
+  roundedRectPath(ctx, slot, radius);
   const g = ctx.createLinearGradient(slot.x, slot.y, slot.x, slot.y + slot.height);
   g.addColorStop(0, 'rgba(120, 140, 230, 0.35)');
   g.addColorStop(1, 'rgba(40, 50, 120, 0.55)');
@@ -193,42 +199,61 @@ export function drawFallbackBackground(ctx: CanvasRenderingContext2D, slots: Slo
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, frame: FrameConfig, assets: FrameAssets) {
-  if (assets.background) ctx.drawImage(assets.background, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-  else drawFallbackBackground(ctx, frame.slots);
+  const { width, height } = frameSize(frame);
+  if (assets.background) {
+    ctx.drawImage(assets.background, 0, 0, width, height);
+    return;
+  }
+  // The fallback is drawn in 1200x1800 space; scale it to this frame's size.
+  const sx = width / OUTPUT_WIDTH;
+  const sy = height / OUTPUT_HEIGHT;
+  ctx.save();
+  ctx.scale(sx, sy);
+  drawFallbackBackground(
+    ctx,
+    frame.slots.map((s) => ({ x: s.x / sx, y: s.y / sy, width: s.width / sx, height: s.height / sy })),
+  );
+  ctx.restore();
 }
 
-function drawOverlay(ctx: CanvasRenderingContext2D, assets: FrameAssets) {
-  if (assets.overlay) ctx.drawImage(assets.overlay, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+function drawOverlay(ctx: CanvasRenderingContext2D, frame: FrameConfig, assets: FrameAssets) {
+  const { width, height } = frameSize(frame);
+  if (assets.overlay) ctx.drawImage(assets.overlay, 0, 0, width, height);
 }
 
-/** Scale the 1200x1800 design space to the target canvas size. */
-function prepare(canvas: HTMLCanvasElement) {
+/** Scale the frame's pixel space to the target canvas size. */
+function prepare(canvas: HTMLCanvasElement, frame: FrameConfig) {
+  const { width, height } = frameSize(frame);
   const ctx = get2d(canvas);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.setTransform(canvas.width / OUTPUT_WIDTH, 0, 0, canvas.height / OUTPUT_HEIGHT, 0, 0);
+  ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
   return ctx;
 }
 
 /**
- * Compose the final strip: background → shots (cover + rounded) → overlay.
- * `shots[i] === null` draws a placeholder (used for frame previews).
+ * Compose the final image: background → shots (center-crop cover, clipped to
+ * each slot) → overlay. Output defaults to the frame's native size.
+ * `shots[i]` missing draws a placeholder (frame previews) unless
+ * `placeholders: false`, which leaves that slot as the bare artwork.
  */
 export function composeFrame(
   frame: FrameConfig,
   assets: FrameAssets,
   shots: (Drawable | null)[],
-  options: { width?: number; height?: number; mirror: boolean },
+  options: { width?: number; height?: number; mirror: boolean; placeholders?: boolean },
 ): HTMLCanvasElement {
-  const canvas = createCanvas(options.width ?? OUTPUT_WIDTH, options.height ?? OUTPUT_HEIGHT);
-  const ctx = prepare(canvas);
+  const size = frameSize(frame);
+  const radius = frame.slotRadius ?? SLOT_RADIUS;
+  const canvas = createCanvas(options.width ?? size.width, options.height ?? size.height);
+  const ctx = prepare(canvas, frame);
   drawBackground(ctx, frame, assets);
   frame.slots.forEach((slot, i) => {
     const shot = shots[i];
-    if (shot) drawCover(ctx, shot, slot, options.mirror);
-    else drawPlaceholder(ctx, slot, i);
+    if (shot) drawCover(ctx, shot, slot, options.mirror, radius);
+    else if (options.placeholders !== false) drawPlaceholder(ctx, slot, i, radius);
   });
-  drawOverlay(ctx, assets);
+  drawOverlay(ctx, frame, assets);
   return canvas;
 }
 
@@ -250,9 +275,9 @@ export function composeSingleShot(
   options: { width: number; height: number; mirror: boolean },
 ): HTMLCanvasElement {
   const canvas = createCanvas(options.width, options.height);
-  const ctx = prepare(canvas);
+  const ctx = prepare(canvas, frame);
   drawBackground(ctx, frame, assets);
-  drawCover(ctx, shot, gifSlotOf(frame), options.mirror);
-  drawOverlay(ctx, assets);
+  drawCover(ctx, shot, gifSlotOf(frame), options.mirror, frame.slotRadius ?? SLOT_RADIUS);
+  drawOverlay(ctx, frame, assets);
   return canvas;
 }

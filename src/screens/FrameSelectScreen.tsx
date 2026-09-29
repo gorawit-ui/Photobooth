@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { MIRROR_OUTPUT } from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { useSpacebar } from '../hooks/useSpacebar';
@@ -51,30 +51,35 @@ export function FrameSelectScreen({ frames, selectedId, onSelect, onConfirm, onB
         <span className="header-spacer" />
       </header>
 
-      <div className="frame-grid scrollable" role="radiogroup" aria-label="กรอบรูป">
-        {frames.map((f) => {
-          const selected = f.id === selectedId;
-          return (
-            <button
-              type="button"
-              key={f.id}
-              role="radio"
-              aria-checked={selected}
-              className={selected ? 'frame-card is-selected' : 'frame-card'}
-              onClick={() => onSelect(f.id)}
-              onDoubleClick={onConfirm}
-            >
-              <div className="frame-thumb">
-                {previews[f.id] ? (
-                  <img src={previews[f.id]} alt="" draggable={false} />
-                ) : (
-                  <div className="frame-thumb-loading" />
-                )}
-              </div>
-              <span className="frame-name">{f.name}</span>
-            </button>
-          );
-        })}
+      <div
+        className="frame-grid scrollable"
+        style={{ '--n': frames.length, '--cols-p': Math.ceil(frames.length / 2) } as CSSProperties}
+      >
+        <div className="frame-grid-inner" role="radiogroup" aria-label="กรอบรูป">
+          {frames.map((f) => {
+            const selected = f.id === selectedId;
+            return (
+              <button
+                type="button"
+                key={f.id}
+                role="radio"
+                aria-checked={selected}
+                className={selected ? 'frame-card is-selected' : 'frame-card'}
+                onClick={() => onSelect(f.id)}
+                onDoubleClick={onConfirm}
+              >
+                <div className="frame-thumb">
+                  {previews[f.id] ? (
+                    <img src={previews[f.id]} alt="" draggable={false} />
+                  ) : (
+                    <div className="frame-thumb-loading" />
+                  )}
+                </div>
+                <span className="frame-name">{f.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <footer className="screen-footer">

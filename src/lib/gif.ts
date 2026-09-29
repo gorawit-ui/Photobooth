@@ -2,13 +2,14 @@ import { GIFEncoder, applyPalette, quantize } from 'gifenc';
 import { GIF_FRAME_DELAY_MS, GIF_HEIGHT, GIF_WIDTH } from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { get2d, releaseCanvas } from './canvas';
-import { composeSingleShot, type Drawable, type FrameAssets } from './compose';
+import { composeFrame, composeSingleShot, type Drawable, type FrameAssets } from './compose';
 
 const nextTick = () => new Promise<void>((r) => window.setTimeout(r, 0));
 
 /**
- * Animated GIF (600x900): one frame per shot, each inside the frame artwork,
- * GIF_FRAME_DELAY_MS per frame, looping forever.
+ * Animated GIF (600x900), GIF_FRAME_DELAY_MS per frame, looping forever.
+ * 'single' frames show one shot per GIF frame inside the frame artwork;
+ * 'build' frames (print templates) fill the slots one shot at a time.
  */
 export async function createGif(
   frame: FrameConfig,
@@ -17,12 +18,12 @@ export async function createGif(
   mirror: boolean,
 ): Promise<Blob> {
   const gif = GIFEncoder();
-  for (const shot of shots) {
-    const canvas = composeSingleShot(frame, assets, shot, {
-      width: GIF_WIDTH,
-      height: GIF_HEIGHT,
-      mirror,
-    });
+  for (let i = 0; i < shots.length; i++) {
+    const size = { width: GIF_WIDTH, height: GIF_HEIGHT, mirror };
+    const canvas =
+      frame.gifMode === 'build'
+        ? composeFrame(frame, assets, shots.slice(0, i + 1), { ...size, placeholders: false })
+        : composeSingleShot(frame, assets, shots[i], size);
     const { data } = get2d(canvas).getImageData(0, 0, GIF_WIDTH, GIF_HEIGHT);
     releaseCanvas(canvas);
     // Per-frame palette keeps skin tones and the gold artwork looking good.

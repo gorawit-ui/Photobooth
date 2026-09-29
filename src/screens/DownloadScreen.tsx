@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Outputs } from '../types';
 import { canShareFiles, downloadBlob, shareFiles } from '../lib/download';
+import { printPhoto } from '../lib/print';
 
 interface Props {
   outputs: Outputs;
@@ -40,6 +41,16 @@ export function DownloadScreen({ outputs, onDone }: Props) {
             }}
           >
             ⬇ ดาวน์โหลด GIF {saved.gif && '✓'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-large"
+            onClick={() => {
+              void printPhoto(outputs.jpgUrl);
+              mark('print');
+            }}
+          >
+            🖨 พิมพ์รูป 4×6 นิ้ว {saved.print && '✓'}
           </button>
           {shareable && (
             <button

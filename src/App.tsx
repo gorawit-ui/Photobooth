@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IDLE_TIMEOUT_MS, JPG_QUALITY, MIRROR_OUTPUT } from './config/app';
-import { FRAMES } from './config/frames';
+import { FRAMES, loadFrameCatalog, type FrameConfig } from './config/frames';
 import { FullscreenButton } from './components/FullscreenButton';
 import { StarField } from './components/StarField';
 import { useCamera } from './hooks/useCamera';
@@ -34,14 +34,16 @@ function disposeOutputs(o: Outputs | null) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
-  const [frameId, setFrameId] = useState(FRAMES[0].id);
+  const [frames, setFrames] = useState<FrameConfig[]>(FRAMES);
+  // '' = first frame in the catalogue. Kept for the whole session, including retakes.
+  const [frameId, setFrameId] = useState('');
   const [shots, setShots] = useState<Shot[]>([]);
   const [outputs, setOutputs] = useState<Outputs | null>(null);
   const [genError, setGenError] = useState(false);
   const [busy, setBusy] = useState(false);
   const genId = useRef(0);
 
-  const frame = FRAMES.find((f) => f.id === frameId) ?? FRAMES[0];
+  const frame = frames.find((f) => f.id === frameId) ?? frames[0];
 
   useWakeLock();
 
@@ -49,10 +51,21 @@ export default function App() {
   // so "ถ่ายใหม่" is instant and permission is asked early.
   const camera = useCamera(screen === 'frames' || screen === 'capture' || screen === 'result');
 
+  // Print templates from public/frames/templates.json + built-in frames.
+  useEffect(() => {
+    let cancelled = false;
+    loadFrameCatalog().then((list) => {
+      if (!cancelled) setFrames(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Preload frame artwork so previews and composition are quick.
   useEffect(() => {
-    FRAMES.forEach((f) => void loadFrameAssets(f));
-  }, []);
+    frames.forEach((f) => void loadFrameAssets(f));
+  }, [frames]);
 
   const clearSession = useCallback(() => {
     genId.current++;
@@ -70,7 +83,7 @@ export default function App() {
 
   const goHome = useCallback(() => {
     clearSession();
-    setFrameId(FRAMES[0].id);
+    setFrameId('');
     setScreen('home');
   }, [clearSession]);
 
@@ -131,10 +144,13 @@ export default function App() {
 
       {screen === 'frames' && (
         <FrameSelectScreen
-          frames={FRAMES}
-          selectedId={frameId}
+          frames={frames}
+          selectedId={frame.id}
           onSelect={setFrameId}
-          onConfirm={() => setScreen('capture')}
+          onConfirm={() => {
+            setFrameId(frame.id); // pin the choice for the whole session
+            setScreen('capture');
+          }}
           onBack={goHome}
         />
       )}
