@@ -1,0 +1,48 @@
+{
+  "canvas": {
+    "width": 1024,
+    "height": 1536,
+    "ratio": "2:3"
+  },
+  "photoSlots": [
+    {
+      "x": 84,
+      "y": 94,
+      "width": 372,
+      "height": 454
+    },
+    {
+      "x": 568,
+      "y": 94,
+      "width": 372,
+      "height": 454
+    },
+    {
+      "x": 84,
+      "y": 663,
+      "width": 372,
+      "height": 454
+    },
+    {
+      "x": 568,
+      "y": 663,
+      "width": 372,
+      "height": 454
+    }
+  ],
+  "templates": [
+    {
+      "id": "castle-classic",
+      "file": "castle-classic.png"
+    },
+    {
+      "id": "enchanted-garden",
+      "file": "enchanted-garden.png"
+    },
+    {
+      "id": "moonlit-castle",
+      "file": "moonlit-castle.png"
+    }
+  ],
+  "notes": "Coordinates are safe inset photo regions, preserving the printed outlines. Review a real photo composite on localhost before production."
+}
