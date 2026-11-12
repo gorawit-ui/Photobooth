@@ -3,9 +3,9 @@
  *
  * Two sources:
  *   - Print templates listed in public/frames/templates.json (1024x1536),
- *     loaded at runtime by loadFrameCatalog(). Their slots are the safe-inset
- *     photo rectangles from that JSON.
- *   - The built-in FRAMES below (1200x1800 design space).
+ *     loaded at runtime by loadFrameCatalog(). Each may have its own layout.
+ *   - The built-in FRAMES below (1200x1800 design space), used only when
+ *     templates.json cannot be loaded.
  *
  * Coordinates are in the frame's own pixel space (`size`, default 1200x1800).
  */
@@ -30,8 +30,21 @@ export interface FrameConfig {
   slotRadius?: number;
   /** Optional transparent PNG drawn on top of everything. */
   overlayImage?: string;
-  /** Where the 4 shots go, in shot order. */
+  /** Where the 4 shots go, in shot order. Slots may differ in size and shape. */
   slots: Slot[];
+  /** Group key for the frame picker tabs (templates.json `groups`). */
+  group?: string;
+}
+
+export interface FrameGroup {
+  id: string;
+  name: string;
+}
+
+export interface FrameCatalog {
+  frames: FrameConfig[];
+  /** Picker tabs, in display order. Empty → no tabs. */
+  groups: FrameGroup[];
 }
 
 export const DEFAULT_SLOTS: Slot[] = [
@@ -73,19 +86,14 @@ export function frameSize(frame: FrameConfig): { width: number; height: number }
 
 const TEMPLATES_URL = '/frames/templates.json';
 
-/** Display names for template ids; unknown ids fall back to the id. */
-const TEMPLATE_NAMES: Record<string, string> = {
-  'castle-classic': 'ปราสาทคลาสสิก',
-  'enchanted-garden': 'สวนต้องมนตร์',
-  'moonlit-castle': 'ปราสาทใต้แสงจันทร์',
-};
-
 interface TemplatesJson {
   canvas: { width: number; height: number };
-  /** Safe-inset photo rectangles: top-left, top-right, bottom-left, bottom-right. */
+  /** Default photo rectangles (the classic 2x2 grid), in shot order. */
   photoSlots: Slot[];
-  /** A template may override `photoSlots` if its border differs slightly. */
-  templates: { id: string; file: string; name?: string; photoSlots?: Slot[] }[];
+  /** Picker tab names by group key, in display order. */
+  groups?: Record<string, string>;
+  /** A template may override `photoSlots` with its own layout. */
+  templates: { id: string; file: string; name?: string; group?: string; photoSlots?: Slot[] }[];
 }
 
 function isSlot(v: unknown): v is Slot {
@@ -94,10 +102,10 @@ function isSlot(v: unknown): v is Slot {
 }
 
 /**
- * Print templates first, then the built-in frames. If templates.json is
- * missing or malformed, only the built-in frames are returned.
+ * The print templates from templates.json. If it is missing or malformed,
+ * the built-in frames are used instead.
  */
-export async function loadFrameCatalog(): Promise<FrameConfig[]> {
+export async function loadFrameCatalog(): Promise<FrameCatalog> {
   try {
     const res = await fetch(TEMPLATES_URL, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -108,16 +116,24 @@ export async function loadFrameCatalog(): Promise<FrameConfig[]> {
       if (slots.length !== 4 || !slots.every(isSlot)) throw new Error(`Bad slots for ${t.id}`);
       return {
         id: t.id,
-        name: t.name ?? TEMPLATE_NAMES[t.id] ?? t.id,
+        name: t.name ?? t.id,
         backgroundImage: `/frames/${t.file}`,
         size: { width, height },
         slots,
         slotRadius: 0,
+        group: t.group,
       };
     });
-    return [...templates, ...FRAMES];
+    if (!templates.length) throw new Error('No templates');
+    const used = new Set(templates.map((t) => t.group));
+    const groups = Object.entries(json.groups ?? {})
+      .filter(([id]) => used.has(id))
+      .map(([id, name]) => ({ id, name }));
+    // Tabs only make sense when every frame belongs to one of them.
+    const tabbed = groups.length > 1 && templates.every((t) => groups.some((g) => g.id === t.group));
+    return { frames: templates, groups: tabbed ? groups : [] };
   } catch (err) {
-    console.warn('Could not load print templates, using built-in frames only', err);
-    return FRAMES;
+    console.warn('Could not load print templates, using built-in frames', err);
+    return { frames: FRAMES, groups: [] };
   }
 }

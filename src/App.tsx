@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IDLE_TIMEOUT_MS, MAGIC_SCENE_DEFAULT_ON, MIRROR_OUTPUT } from './config/app';
-import { FRAMES, loadFrameCatalog, type FrameConfig } from './config/frames';
+import { FRAMES, loadFrameCatalog, type FrameConfig, type FrameGroup } from './config/frames';
 import { FullscreenButton } from './components/FullscreenButton';
 import { SoundToggle } from './components/SoundToggle';
 import { StarField } from './components/StarField';
@@ -13,10 +13,10 @@ import { makeBaseFilename } from './lib/filename';
 import {
   assemblePrepared,
   disposePrepared,
-  prepareShot,
+  disposePreparedShot,
+  prepareShotFor,
   prepareShots,
   renderOutputs,
-  slotAspect,
   type Look,
   type Prepared,
   type PreparedShot,
@@ -49,6 +49,7 @@ function disposeOutputs(o: Outputs | null) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [frames, setFrames] = useState<FrameConfig[]>(FRAMES);
+  const [frameGroups, setFrameGroups] = useState<FrameGroup[]>([]);
   // '' = first frame in the catalogue. Kept for the whole session, including retakes.
   const [frameId, setFrameId] = useState('');
   const [shots, setShots] = useState<Shot[]>([]);
@@ -78,8 +79,10 @@ export default function App() {
   // Print templates from public/frames/templates.json + built-in frames.
   useEffect(() => {
     let cancelled = false;
-    loadFrameCatalog().then((list) => {
-      if (!cancelled) setFrames(list);
+    loadFrameCatalog().then((catalog) => {
+      if (cancelled) return;
+      setFrames(catalog.frames);
+      setFrameGroups(catalog.groups);
     });
     return () => {
       cancelled = true;
@@ -99,9 +102,7 @@ export default function App() {
   const resetPrepQueue = useCallback(() => {
     const old = prepQueue.current;
     prepQueue.current = [];
-    old.forEach((p) =>
-      p.then((s) => s && disposePrepared({ shots: [s], aspect: 1, sceneAvailable: false })),
-    );
+    old.forEach((p) => p.then(disposePreparedShot));
   }, []);
 
   const clearSession = useCallback(() => {
@@ -153,13 +154,12 @@ export default function App() {
         // Use the per-shot work done during the session; redo anything missing.
         const queued = prepQueue.current;
         prepQueue.current = [];
-        const aspect = slotAspect(frame);
         const results = queued.length === taken.length ? await Promise.all(queued) : [];
         const p =
           results.length === taken.length && results.every(Boolean)
-            ? assemblePrepared(results as PreparedShot[], aspect)
+            ? assemblePrepared(frame, results as PreparedShot[])
             : await prepareShots(frame, taken.map((s) => s.canvas), MIRROR_OUTPUT);
-        if (p.shots !== results) results.forEach((r) => r && disposePrepared({ shots: [r], aspect, sceneAvailable: false }));
+        if (p.shots !== results) results.forEach(disposePreparedShot);
         if (id !== genId.current) {
           disposePrepared(p);
           return;
@@ -215,9 +215,8 @@ export default function App() {
   const handleShot = useCallback(
     (shot: Shot, index: number) => {
       if (index === 0) resetPrepQueue(); // new capture run
-      const aspect = slotAspect(frame);
       prepQueue.current[index] = new Promise<void>((r) => window.setTimeout(r, 60))
-        .then(() => prepareShot(shot.canvas, aspect, MIRROR_OUTPUT))
+        .then(() => prepareShotFor(frame, shot.canvas, index, MIRROR_OUTPUT))
         .catch((err) => {
           console.warn('Shot preparation failed, will retry after capture', err);
           return null;
@@ -253,6 +252,7 @@ export default function App() {
       {screen === 'frames' && (
         <FrameSelectScreen
           frames={frames}
+          groups={frameGroups}
           selectedId={frame.id}
           onSelect={setFrameId}
           onConfirm={() => {

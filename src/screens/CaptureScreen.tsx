@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   COUNTDOWN_FIRST_SECONDS,
   COUNTDOWN_NEXT_SECONDS,
+  CROP_FOCAL_Y,
   MIRROR_OUTPUT,
   PAUSE_BETWEEN_SHOTS_MS,
   SHOT_COUNT,
 } from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { CameraPicker } from '../components/CameraPicker';
+import { LayoutMap } from '../components/LayoutMap';
 import { MagicSparkles } from '../components/MagicSparkles';
 import { MagicLoader } from '../components/MagicLoader';
 import { PermissionHelp } from '../components/PermissionHelp';
@@ -52,8 +54,9 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
   const [flashKey, setFlashKey] = useState(0);
   const [failed, setFailed] = useState(false);
 
-  // Preview uses the slot's aspect ratio so what you see is what gets cropped.
-  const slot = frame.slots[0];
+  // Preview uses the shape of the slot being shot, so what you see is what
+  // gets cropped. Special layouts mix landscape and portrait slots.
+  const slot = frame.slots[shotIndex] ?? frame.slots[0];
   const [stageRef, fit] = useFitSize<HTMLDivElement>(slot.width / slot.height);
 
   useEffect(() => {
@@ -112,6 +115,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
       console.error(err);
       setShots([]);
       setCount(null);
+      setShotIndex(0);
       setPhase('ready');
       setFailed(true);
     }
@@ -136,7 +140,14 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
           className="preview"
           style={fit ? { width: fit.width, height: fit.height } : { visibility: 'hidden' }}
         >
-          <video ref={videoRef} className="preview-video" autoPlay playsInline muted />
+          <video
+            ref={videoRef}
+            className="preview-video"
+            style={{ objectPosition: `50% ${CROP_FOCAL_Y * 100}%` }}
+            autoPlay
+            playsInline
+            muted
+          />
           <MagicSparkles burstKey={flashKey} />
           <div className="preview-frame" aria-hidden="true" />
           {camera.status !== 'ready' && (
@@ -164,6 +175,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
               ช็อต {Math.min(shotIndex + 1, SHOT_COUNT)}/{SHOT_COUNT}
             </p>
             <p className="panel-text">{count !== null ? 'เตรียมโพสท่า!' : 'ยิ้มมม ✨'}</p>
+            <LayoutMap frame={frame} current={shotIndex} taken={shots.length} />
           </div>
         ) : (
           <>
@@ -173,6 +185,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
                 ถ่ายทั้งหมด {SHOT_COUNT} ช็อต ช็อตแรกนับถอยหลัง {COUNTDOWN_FIRST_SECONDS} วินาที ช็อตถัดไป {COUNTDOWN_NEXT_SECONDS} วินาที
               </p>
               {failed && <p className="panel-error">ถ่ายไม่สำเร็จ ลองกดเริ่มใหม่อีกครั้ง</p>}
+              <LayoutMap frame={frame} current={-1} taken={0} />
             </div>
             <button
               type="button"

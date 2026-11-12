@@ -1,6 +1,6 @@
 {
-  "name": "Magical Photo Booth",
-  "short_name": "Magical Booth",
+  "name": "The Order of Unity Photo Booth",
+  "short_name": "Order of Unity",
   "start_url": "/",
   "display": "fullscreen",
   "orientation": "any",

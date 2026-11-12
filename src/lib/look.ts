@@ -6,7 +6,7 @@
  * changes the scene toggle or filter on the result screen.
  */
 
-import { JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
+import { CROP_FOCAL_Y, JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
 import type { FrameConfig } from '../config/frames';
 import { canvasToBlob, createCanvas, get2d, releaseCanvas } from './canvas';
 import { composeFrame, type Drawable, type FrameAssets } from './compose';
@@ -22,15 +22,17 @@ export interface Look {
 }
 
 export interface PreparedShot {
-  /** The shot cropped to the slot's shape (mirror already applied). */
+  /** The shot cropped to its slot's shape (mirror already applied). */
   photo: HTMLCanvasElement;
   /** Same crop with the magic background, or null if not possible. */
   scene: HTMLCanvasElement | null;
+  /** Crop for the GIF when the GIF shape differs from the slot, else null (use `photo`). */
+  gif: HTMLCanvasElement | null;
 }
 
 export interface Prepared {
   shots: PreparedShot[];
-  /** Photo width / height (the frame's slot shape). */
+  /** GIF frame width / height (shared by every shot). */
   aspect: number;
   /** True if at least one shot got a magic background. */
   sceneAvailable: boolean;
@@ -42,7 +44,8 @@ function sizeOf(src: Drawable) {
     : { w: src.width, h: src.height };
 }
 
-/** Center-crop to `aspect` at source resolution (max 1080 px tall), optionally mirrored. */
+/** Crop to `aspect` at source resolution (max 1080 px tall), optionally mirrored.
+ *  Centred horizontally; vertically at CROP_FOCAL_Y. */
 function cropToAspect(src: Drawable, aspect: number, mirror: boolean): HTMLCanvasElement {
   const { w, h } = sizeOf(src);
   let cw = w;
@@ -58,24 +61,50 @@ function cropToAspect(src: Drawable, aspect: number, mirror: boolean): HTMLCanva
     ctx.translate(outW, 0);
     ctx.scale(-1, 1);
   }
-  ctx.drawImage(src, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, outW, outH);
+  ctx.drawImage(src, (w - cw) / 2, (h - ch) * CROP_FOCAL_Y, cw, ch, 0, 0, outW, outH);
   return canvas;
 }
 
 const nextTick = () => new Promise<void>((r) => window.setTimeout(r, 0));
 
-export function slotAspect(frame: FrameConfig): number {
-  const slot = frame.slots[0];
+/** Width / height of the slot that shot `index` goes into. */
+export function slotAspect(frame: FrameConfig, index = 0): number {
+  const slot = frame.slots[index] ?? frame.slots[0];
   return slot.width / slot.height;
 }
+
+/** GIF shape limits: very wide or very tall slots make an unwatchable GIF. */
+const GIF_MIN_ASPECT = 3 / 4;
+const GIF_MAX_ASPECT = 3 / 2;
+const GIF_MIXED_ASPECT = 4 / 5;
+
+/**
+ * One shape for every GIF frame: the slot shape if all slots share it
+ * (classic 2x2 frames — same crop as the print), otherwise 4:5. Clamped so
+ * strip-shaped slots still give a watchable GIF.
+ */
+export function gifAspect(frame: FrameConfig): number {
+  const aspects = frame.slots.map((s) => s.width / s.height);
+  const uniform = aspects.every((a) => Math.abs(a / aspects[0] - 1) < 0.01);
+  const a = uniform ? aspects[0] : GIF_MIXED_ASPECT;
+  return Math.min(GIF_MAX_ASPECT, Math.max(GIF_MIN_ASPECT, a));
+}
+
+const sameAspect = (a: number, b: number) => Math.abs(a / b - 1) < 0.005;
 
 /**
  * Crop one shot and give it the magic background (if a person is found).
  * Runs right after each shot is taken, during the pause before the next
  * countdown, so nothing is left to do after the last shot but the outputs.
  */
-export async function prepareShot(src: Drawable, aspect: number, mirror: boolean): Promise<PreparedShot> {
+export async function prepareShot(
+  src: Drawable,
+  aspect: number,
+  gifShape: number,
+  mirror: boolean,
+): Promise<PreparedShot> {
   const photo = cropToAspect(src, aspect, mirror);
+  const gif = sameAspect(aspect, gifShape) ? null : cropToAspect(src, gifShape, mirror);
   let scene: HTMLCanvasElement | null = null;
   try {
     const bg = await loadSceneImage(MAGIC_SCENE_IMAGE);
@@ -86,29 +115,37 @@ export async function prepareShot(src: Drawable, aspect: number, mirror: boolean
   } catch (err) {
     console.warn('Magic background unavailable for this shot, using the real background', err);
   }
-  return { photo, scene };
+  return { photo, scene, gif };
 }
 
-export function assemblePrepared(shots: PreparedShot[], aspect: number): Prepared {
-  return { shots, aspect, sceneAvailable: shots.some((s) => s.scene) };
+/** Prepare shot `index` for `frame`. */
+export function prepareShotFor(frame: FrameConfig, src: Drawable, index: number, mirror: boolean) {
+  return prepareShot(src, slotAspect(frame, index), gifAspect(frame), mirror);
+}
+
+export function assemblePrepared(frame: FrameConfig, shots: PreparedShot[]): Prepared {
+  return { shots, aspect: gifAspect(frame), sceneAvailable: shots.some((s) => s.scene) };
 }
 
 /** Prepare all shots in one go (used when the per-shot results are missing). */
 export async function prepareShots(frame: FrameConfig, shots: Drawable[], mirror: boolean): Promise<Prepared> {
-  const aspect = slotAspect(frame);
   const out: PreparedShot[] = [];
-  for (const s of shots) {
-    out.push(await prepareShot(s, aspect, mirror));
+  for (let i = 0; i < shots.length; i++) {
+    out.push(await prepareShotFor(frame, shots[i], i, mirror));
     await nextTick(); // keep the loader animating
   }
-  return assemblePrepared(out, aspect);
+  return assemblePrepared(frame, out);
+}
+
+export function disposePreparedShot(s: PreparedShot | null): void {
+  if (!s) return;
+  releaseCanvas(s.photo);
+  if (s.scene) releaseCanvas(s.scene);
+  if (s.gif) releaseCanvas(s.gif);
 }
 
 export function disposePrepared(p: Prepared | null): void {
-  p?.shots.forEach((s) => {
-    releaseCanvas(s.photo);
-    if (s.scene) releaseCanvas(s.scene);
-  });
+  p?.shots.forEach(disposePreparedShot);
 }
 
 /** JPG (frame + photos with the chosen look) and GIF (photos only, real background). */
@@ -130,7 +167,7 @@ export async function renderOutputs(
     temp.push(composed);
     const jpg = await canvasToBlob(composed, 'image/jpeg', JPG_QUALITY);
     await nextTick();
-    const gifPhotos = prepared.shots.map((s) => filtered(s.photo));
+    const gifPhotos = prepared.shots.map((s) => filtered(s.gif ?? s.photo));
     const gif = await createGif(gifPhotos, prepared.aspect, false);
     return { jpg, gif };
   } finally {

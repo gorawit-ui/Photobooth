@@ -289,42 +289,144 @@ h1, h2, h3, p { margin: 0; }
   gap: 8px;
 }
 
-/* ---------- Home ---------- */
+/* ---------- Home: "The Order of Unity" ---------- */
 
 .home-screen {
   justify-content: center;
-  text-align: center;
+  align-items: flex-start;
+  overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 30% 10%, rgba(30, 44, 107, 0.85) 0%, rgba(11, 20, 51, 0.6) 55%, transparent 100%);
 }
-.home-moon {
-  width: clamp(90px, 18vmin, 180px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  box-shadow: inset clamp(-18px, -3.5vmin, -34px) clamp(-6px, -1vmin, -10px) 0 0 var(--gold-300);
-  transform: rotate(-20deg);
-  filter: drop-shadow(0 0 24px rgba(246, 215, 126, 0.55));
-  margin-bottom: 4px;
+.home-sky,
+.home-castle {
+  position: absolute;
+  pointer-events: none;
 }
-.eyebrow {
-  font-family: 'Cinzel Decorative', Georgia, serif;
-  color: var(--gold-300);
-  letter-spacing: 0.12em;
-  font-size: clamp(1rem, 2.6vmin, 1.4rem);
+.home-sky { inset: 0; width: 100%; height: 100%; }
+.home-moon-shape {
+  fill: #f3d27a;
+  filter: drop-shadow(0 0 18px rgba(246, 215, 126, 0.55));
+}
+.home-trail { animation: trail-flow 6s linear infinite; }
+@keyframes trail-flow { to { stroke-dashoffset: -100; } }
+.home-castle {
+  right: 0;
+  bottom: 0;
+  width: 52%;
+  max-width: 760px;
+  height: auto;
+}
+.home-windows { animation: window-glow 3.2s ease-in-out infinite alternate; }
+@keyframes window-glow { from { opacity: 0.75; } to { opacity: 1; } }
+
+.home-content {
+  position: relative;
+  max-width: 760px;
+  padding: 0 0 clamp(24px, 6vmin, 72px) 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(8px, 1.6vmin, 14px);
+  text-align: left;
+}
+.home-eyebrow {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.4vmin, 1.25rem);
+  letter-spacing: 0.42em;
+  color: #e9c46a;
 }
 .home-title {
-  font-weight: 600;
-  font-size: clamp(2.6rem, 9vmin, 5.6rem);
-  line-height: 1.15;
-  background: var(--gold-gradient);
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 10vmin, 4.75rem);
+  line-height: 1.04;
+  background: linear-gradient(180deg, #fff1c4 0%, #e9c46a 48%, #b07a22 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 4px 20px rgba(227, 181, 76, 0.25));
+  filter: drop-shadow(0 0 24px rgba(233, 196, 106, 0.2));
 }
-.home-title span { display: block; }
+.home-thai {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.home-thai p {
+  font-family: 'Chonburi', 'Mitr', serif;
+  font-size: clamp(1.5rem, 5vmin, 2.4rem);
+  color: var(--parchment, #f2e6c9);
+}
+.home-thai span {
+  height: 1px;
+  width: clamp(24px, 4vmin, 48px);
+  background: linear-gradient(90deg, transparent, #d4a64a);
+}
+.home-thai span:last-child { background: linear-gradient(90deg, #d4a64a, transparent); }
 .home-sub {
-  color: var(--text-dim);
-  font-size: clamp(1rem, 2.6vmin, 1.35rem);
-  margin-bottom: clamp(12px, 3vmin, 36px);
+  margin: 4px 0 clamp(10px, 2.6vmin, 22px);
+  font-size: clamp(1rem, 2.4vmin, 1.15rem);
+  font-weight: 300;
+  color: rgba(242, 230, 201, 0.78);
+}
+
+/* Start button shaped like a vintage train ticket */
+.ticket-btn {
+  appearance: none;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #faf1d8 0%, #e8d4a4 100%);
+  box-shadow: 0 0 0 2px #d4a64a, 0 0 0 6px rgba(212, 166, 74, 0.18), 0 18px 48px rgba(212, 166, 74, 0.35);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  min-height: 88px;
+  animation: ticket-glow 2.8s ease-in-out infinite;
+  transition: transform 0.15s ease;
+}
+.ticket-btn:active { transform: scale(0.97); }
+.ticket-btn:focus-visible { outline: 3px solid var(--gold-100); outline-offset: 6px; }
+@keyframes ticket-glow {
+  50% { box-shadow: 0 0 0 2px #d4a64a, 0 0 0 8px rgba(212, 166, 74, 0.26), 0 18px 60px rgba(212, 166, 74, 0.55); }
+}
+.ticket-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: clamp(12px, 2vmin, 16px) clamp(24px, 4vmin, 36px) clamp(14px, 2.2vmin, 18px);
+}
+.ticket-kicker {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(0.7rem, 1.7vmin, 0.82rem);
+  letter-spacing: 0.32em;
+  color: #7a1e2b;
+}
+.ticket-label {
+  font-family: 'Chonburi', 'Mitr', serif;
+  font-size: clamp(1.7rem, 4.6vmin, 2.25rem);
+  line-height: 1.15;
+  color: #5a1420;
+}
+.ticket-stub {
+  display: flex;
+  align-items: center;
+  padding: 0 clamp(18px, 3vmin, 26px);
+  border-left: 2px dashed #b98b3a;
+  color: #7a1e2b;
+}
+.home-hint { color: rgba(242, 230, 201, 0.6); }
+
+/* Portrait (iPad upright): centre the text above the castle */
+@media (orientation: portrait) {
+  .home-screen { align-items: center; justify-content: flex-start; padding-top: calc(18vh + var(--safe-top)); }
+  .home-content { align-items: center; text-align: center; padding: 0 16px; }
+  .home-castle { width: 100%; max-width: none; }
+  .home-sparkles { display: none; }
 }
 
 /* ---------- Frame selection ---------- */
@@ -345,6 +447,50 @@ h1, h2, h3, p { margin: 0; }
   display: flex;
   padding: 6px;
 }
+.frame-screen.has-tabs .frame-grid {
+  --card-w: min(
+    280px,
+    calc((100 * var(--vh) - 400px) * 0.6667),
+    calc((100vw - 80px - (var(--n, 3) - 1) * var(--gap)) / var(--n, 3))
+  );
+}
+.frame-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(6, 10, 31, 0.55);
+  border: 1px solid rgba(212, 166, 74, 0.35);
+}
+.frame-tab {
+  appearance: none;
+  border: 0;
+  min-height: 48px;
+  padding: 0 clamp(16px, 3vmin, 26px);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: clamp(1rem, 2.3vmin, 1.15rem);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.frame-tab.is-active {
+  background: var(--gold-gradient);
+  color: var(--navy-900);
+  font-weight: 500;
+}
+.frame-tab-count {
+  font-size: 0.8em;
+  min-width: 1.6em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(246, 215, 126, 0.18);
+}
+.frame-tab.is-active .frame-tab-count { background: rgba(6, 11, 38, 0.15); }
 /* margin: auto centres the cards but, unlike align-content: center,
    keeps overflowing rows reachable by scrolling */
 .frame-grid-inner {
@@ -355,10 +501,11 @@ h1, h2, h3, p { margin: 0; }
   gap: var(--gap);
 }
 @media (orientation: portrait) {
+  .frame-screen.has-tabs .frame-grid,
   .frame-grid {
     --card-w: min(
       300px,
-      calc((100 * var(--vh) - 380px) / 2 * 0.6667),
+      calc((100 * var(--vh) - 440px) / 2 * 0.6667),
       calc((100vw - 60px - (var(--cols-p, 2) - 1) * var(--gap)) / var(--cols-p, 2))
     );
   }
@@ -523,6 +670,19 @@ h1, h2, h3, p { margin: 0; }
   text-align: center;
 }
 .panel-status { display: flex; flex-direction: column; gap: 8px; }
+.layout-map {
+  align-self: center;
+  width: clamp(56px, 11vmin, 96px);
+  height: auto;
+  margin-top: 4px;
+}
+.layout-map-sheet { fill: rgba(242, 230, 201, 0.1); stroke: rgba(246, 215, 126, 0.4); stroke-width: 12; }
+.layout-map-slot rect { fill: rgba(242, 230, 201, 0.16); transition: fill 0.25s; }
+.layout-map-slot text { fill: rgba(242, 230, 201, 0.55); font-family: 'Mitr', sans-serif; font-weight: 500; }
+.layout-map-slot.is-taken rect { fill: rgba(246, 215, 126, 0.55); }
+.layout-map-slot.is-current rect { fill: var(--gold-300); }
+.layout-map-slot.is-current text,
+.layout-map-slot.is-taken text { fill: var(--navy-900); }
 .panel-title {
   font-size: clamp(1.3rem, 3.2vmin, 1.8rem);
   font-weight: 600;
@@ -871,11 +1031,11 @@ h1, h2, h3, p { margin: 0; }
 
 @media (max-height: 560px) and (orientation: landscape) {
   .btn-hero { min-height: 64px; }
-  .home-moon { display: none; }
+  .home-castle { width: 40%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .btn-hero, .magic-loader p, .magic-orb::after { animation: none; }
+  .star, .btn-hero, .ticket-btn, .home-trail, .home-windows, .magic-loader p, .magic-orb::after { animation: none; }
   .screen { animation: none; }
 }
 

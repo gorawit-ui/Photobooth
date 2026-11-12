@@ -30,19 +30,207 @@
       "height": 454
     }
   ],
+  "groups": {
+    "classic": "กรอบคลาสสิก 2×2",
+    "special": "เลย์เอาต์พิเศษ"
+  },
   "templates": [
     {
-      "id": "castle-classic",
-      "file": "castle-classic.png"
+      "id": "great-hall",
+      "file": "great-hall.jpg",
+      "name": "ห้องโถงเทียนลอย",
+      "group": "classic"
     },
     {
-      "id": "enchanted-garden",
-      "file": "enchanted-garden.png"
+      "id": "night-express",
+      "file": "night-express.jpg",
+      "name": "รถไฟสายราตรี",
+      "group": "classic"
     },
     {
-      "id": "moonlit-castle",
-      "file": "moonlit-castle.png"
+      "id": "owl-post",
+      "file": "owl-post.jpg",
+      "name": "จดหมายนกฮูก",
+      "group": "classic"
+    },
+    {
+      "id": "pearl-blue-hall",
+      "file": "pearl-blue-hall.jpg",
+      "name": "ห้องโถงไข่มุก",
+      "group": "classic"
+    },
+    {
+      "id": "mint-vintage-express",
+      "file": "mint-vintage-express.jpg",
+      "name": "รถไฟสีมินต์",
+      "group": "classic"
+    },
+    {
+      "id": "blush-owl-post",
+      "file": "blush-owl-post.jpg",
+      "name": "จดหมายสีชมพู",
+      "group": "classic"
+    },
+    {
+      "id": "spellbook-hero",
+      "file": "spellbook-hero.jpg",
+      "name": "สมุดเวทมนตร์",
+      "group": "special",
+      "photoSlots": [
+        {
+          "x": 64,
+          "y": 80,
+          "width": 896,
+          "height": 600
+        },
+        {
+          "x": 64,
+          "y": 746,
+          "width": 272,
+          "height": 340
+        },
+        {
+          "x": 376,
+          "y": 746,
+          "width": 272,
+          "height": 340
+        },
+        {
+          "x": 688,
+          "y": 746,
+          "width": 272,
+          "height": 340
+        }
+      ]
+    },
+    {
+      "id": "travel-ticket-strip",
+      "file": "travel-ticket-strip.jpg",
+      "name": "ตั๋วรถไฟวิเศษ",
+      "group": "special",
+      "photoSlots": [
+        {
+          "x": 94,
+          "y": 68,
+          "width": 836,
+          "height": 234
+        },
+        {
+          "x": 94,
+          "y": 342,
+          "width": 836,
+          "height": 234
+        },
+        {
+          "x": 94,
+          "y": 616,
+          "width": 836,
+          "height": 234
+        },
+        {
+          "x": 94,
+          "y": 890,
+          "width": 836,
+          "height": 234
+        }
+      ]
+    },
+    {
+      "id": "pearl-observatory",
+      "file": "pearl-observatory.jpg",
+      "name": "หอดูดาวไข่มุก",
+      "group": "special",
+      "photoSlots": [
+        {
+          "x": 64,
+          "y": 94,
+          "width": 544,
+          "height": 1020
+        },
+        {
+          "x": 652,
+          "y": 94,
+          "width": 308,
+          "height": 308
+        },
+        {
+          "x": 652,
+          "y": 450,
+          "width": 308,
+          "height": 308
+        },
+        {
+          "x": 652,
+          "y": 806,
+          "width": 308,
+          "height": 308
+        }
+      ]
+    },
+    {
+      "id": "postal-map",
+      "file": "postal-map.jpg",
+      "name": "แผนที่ไปรษณีย์ลับ",
+      "group": "special",
+      "photoSlots": [
+        {
+          "x": 64,
+          "y": 80,
+          "width": 600,
+          "height": 220
+        },
+        {
+          "x": 360,
+          "y": 360,
+          "width": 600,
+          "height": 220
+        },
+        {
+          "x": 64,
+          "y": 640,
+          "width": 600,
+          "height": 220
+        },
+        {
+          "x": 360,
+          "y": 920,
+          "width": 600,
+          "height": 220
+        }
+      ]
+    },
+    {
+      "id": "field-journal",
+      "file": "field-journal.jpg",
+      "name": "สมุดบันทึกต้องมนตร์",
+      "group": "special",
+      "photoSlots": [
+        {
+          "x": 64,
+          "y": 80,
+          "width": 560,
+          "height": 390
+        },
+        {
+          "x": 680,
+          "y": 140,
+          "width": 280,
+          "height": 400
+        },
+        {
+          "x": 64,
+          "y": 600,
+          "width": 320,
+          "height": 500
+        },
+        {
+          "x": 440,
+          "y": 640,
+          "width": 520,
+          "height": 390
+        }
+      ]
     }
   ],
-  "notes": "Coordinates are safe inset photo regions, preserving the printed outlines. Review a real photo composite on localhost before production."
+  "notes": "Theme: The Order of Unity. Slot positions verified against the artwork: every pixel inside each slot is white. Special layouts come from layouts.json in the designer handoff. Older templates (castle-classic, enchanted-garden, moonlit-castle) are kept in this folder but not listed; add them back here to show them again."
 }

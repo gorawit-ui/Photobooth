@@ -1,12 +1,14 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { MIRROR_OUTPUT } from '../config/app';
-import type { FrameConfig } from '../config/frames';
+import type { FrameConfig, FrameGroup } from '../config/frames';
 import { useSpacebar } from '../hooks/useSpacebar';
 import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { composeFrame, loadFrameAssets } from '../lib/compose';
 
 interface Props {
   frames: FrameConfig[];
+  /** Picker tabs; empty → show every frame without tabs. */
+  groups: FrameGroup[];
   selectedId: string;
   onSelect: (id: string) => void;
   onConfirm: () => void;
@@ -37,12 +39,27 @@ function useFramePreviews(frames: FrameConfig[]) {
   return previews;
 }
 
-export function FrameSelectScreen({ frames, selectedId, onSelect, onConfirm, onBack }: Props) {
+export function FrameSelectScreen({ frames, groups, selectedId, onSelect, onConfirm, onBack }: Props) {
   const previews = useFramePreviews(frames);
   useSpacebar(onConfirm);
 
+  // Open on the tab that holds the selected frame.
+  const selectedGroup = frames.find((f) => f.id === selectedId)?.group;
+  const [tab, setTab] = useState(() => selectedGroup ?? groups[0]?.id ?? '');
+  const activeTab = groups.some((g) => g.id === tab) ? tab : (selectedGroup ?? groups[0]?.id ?? '');
+  const shown = groups.length ? frames.filter((f) => f.group === activeTab) : frames;
+
+  const switchTab = (id: string) => {
+    setTab(id);
+    // Keep a visible frame selected so "ใช้กรอบนี้" always matches what's on screen.
+    if (selectedGroup !== id) {
+      const first = frames.find((f) => f.group === id);
+      if (first) onSelect(first.id);
+    }
+  };
+
   return (
-    <main className="screen frame-screen">
+    <main className={groups.length ? 'screen frame-screen has-tabs' : 'screen frame-screen'}>
       <header className="screen-header">
         <button type="button" className="btn btn-ghost btn-small" onClick={onBack}>
           ‹ หน้าแรก
@@ -51,12 +68,30 @@ export function FrameSelectScreen({ frames, selectedId, onSelect, onConfirm, onB
         <span className="header-spacer" />
       </header>
 
+      {groups.length > 0 && (
+        <div className="frame-tabs" role="tablist" aria-label="ประเภทกรอบ">
+          {groups.map((g) => (
+            <button
+              type="button"
+              key={g.id}
+              role="tab"
+              aria-selected={g.id === activeTab}
+              className={g.id === activeTab ? 'frame-tab is-active' : 'frame-tab'}
+              onClick={() => switchTab(g.id)}
+            >
+              {g.name}
+              <span className="frame-tab-count">{frames.filter((f) => f.group === g.id).length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div
         className="frame-grid scrollable"
-        style={{ '--n': frames.length, '--cols-p': Math.ceil(frames.length / 2) } as CSSProperties}
+        style={{ '--n': shown.length, '--cols-p': Math.ceil(shown.length / 2) } as CSSProperties}
       >
         <div className="frame-grid-inner" role="radiogroup" aria-label="กรอบรูป">
-          {frames.map((f) => {
+          {shown.map((f) => {
             const selected = f.id === selectedId;
             return (
               <button

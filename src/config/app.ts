@@ -58,3 +58,10 @@ export const MAGIC_SCENE_IMAGE = '/backgrounds/magic-castle.jpg';
 export const MAGIC_SCENE_DEFAULT_ON = true;
 /** Shots where less than this share of pixels is a person keep the real background. */
 export const MIN_PERSON_COVERAGE = 0.02;
+
+/**
+ * Vertical crop position when a shot is cut to a wider slot (0 = keep the
+ * top, 0.5 = centre, 1 = keep the bottom). Slightly above centre keeps heads
+ * in wide strip-shaped slots. The camera preview uses the same position.
+ */
+export const CROP_FOCAL_Y = 0.4;
