@@ -4,8 +4,9 @@
  * system fonts because a font CDN is slow or blocked.
  *
  *   IBM Plex Sans Thai  400 / 500 / 600  — UI, body, buttons (Thai + Latin)
- *   Cinzel Decorative   700              — event title, countdown numbers
- *   Chonburi            400              — Thai display title
+ *   IM Fell English SC  400              — event title (antique storybook caps)
+ *   Charmonman          700              — Thai display title (calligraphic)
+ *   Cinzel Decorative   700              — countdown numbers
  */
 
 @font-face {
@@ -37,9 +38,16 @@
   font-display: swap;
 }
 @font-face {
-  font-family: 'Chonburi';
-  src: url('./assets/fonts/Chonburi-Regular.ttf') format('truetype');
+  font-family: 'IM Fell English SC';
+  src: url('./assets/fonts/IMFellEnglishSC-Regular.ttf') format('truetype');
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Charmonman';
+  src: url('./assets/fonts/Charmonman-Bold.ttf') format('truetype');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
