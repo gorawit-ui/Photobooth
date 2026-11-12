@@ -65,3 +65,6 @@ export const MIN_PERSON_COVERAGE = 0.02;
  * in wide strip-shaped slots. The camera preview uses the same position.
  */
 export const CROP_FOCAL_Y = 0.4;
+
+/** Brighten dark shots automatically (dim office / hall lighting). Normal shots are untouched. */
+export const AUTO_BRIGHTEN = true;

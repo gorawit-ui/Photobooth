@@ -588,8 +588,9 @@ h1, h2, h3, p { margin: 0; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1); /* mirror, like looking into a mirror */
 }
+/* Optional mirror-style preview (booth setting); saved photos are never mirrored */
+.preview-video.is-mirrored { transform: scaleX(-1); }
 .magic-sparkles {
   position: absolute;
   inset: 0;

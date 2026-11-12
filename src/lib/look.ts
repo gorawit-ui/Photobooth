@@ -6,8 +6,9 @@
  * changes the scene toggle or filter on the result screen.
  */
 
-import { CROP_FOCAL_Y, JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
+import { AUTO_BRIGHTEN, CROP_FOCAL_Y, JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
 import type { FrameConfig } from '../config/frames';
+import { applyCurve, exposureCurve } from './autoExposure';
 import { canvasToBlob, createCanvas, get2d, releaseCanvas } from './canvas';
 import { composeFrame, type Drawable, type FrameAssets } from './compose';
 import { applyFilter, type FilterId } from './filters';
@@ -105,6 +106,14 @@ export async function prepareShot(
 ): Promise<PreparedShot> {
   const photo = cropToAspect(src, aspect, mirror);
   const gif = sameAspect(aspect, gifShape) ? null : cropToAspect(src, gifShape, mirror);
+  if (AUTO_BRIGHTEN) {
+    // One curve from the slot crop, applied to both crops so JPG and GIF match.
+    const curve = exposureCurve(photo);
+    if (curve) {
+      applyCurve(photo, curve);
+      if (gif) applyCurve(gif, curve);
+    }
+  }
   let scene: HTMLCanvasElement | null = null;
   try {
     const bg = await loadSceneImage(MAGIC_SCENE_IMAGE);

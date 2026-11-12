@@ -7,6 +7,7 @@ import {
   stopStream,
   type CameraErrorKind,
 } from '../lib/camera';
+import { loadSettings, saveSettings } from '../lib/boothSettings';
 
 export interface CameraState {
   stream: MediaStream | null;
@@ -25,7 +26,8 @@ export function useCamera(active: boolean): CameraState {
   const [status, setStatus] = useState<CameraState['status']>('idle');
   const [error, setError] = useState<CameraErrorKind | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [chosenId, setChosenId] = useState<string | undefined>();
+  // Remembered across reloads so the event machine keeps using the Sony capture card.
+  const [chosenId, setChosenId] = useState<string | undefined>(() => loadSettings().cameraId);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -74,7 +76,10 @@ export function useCamera(active: boolean): CameraState {
     return () => md.removeEventListener('devicechange', onChange);
   }, [active]);
 
-  const selectDevice = useCallback((id: string) => setChosenId(id), []);
+  const selectDevice = useCallback((id: string) => {
+    saveSettings({ cameraId: id });
+    setChosenId(id);
+  }, []);
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   return {

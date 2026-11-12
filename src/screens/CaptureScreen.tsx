@@ -16,6 +16,7 @@ import { PermissionHelp } from '../components/PermissionHelp';
 import type { CameraState } from '../hooks/useCamera';
 import { useFitSize } from '../hooks/useFitSize';
 import { useSpacebar } from '../hooks/useSpacebar';
+import { loadSettings, saveSettings } from '../lib/boothSettings';
 import { captureFrame, waitForVideo } from '../lib/camera';
 import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isTouchDevice } from '../lib/device';
@@ -53,6 +54,12 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
   const [shots, setShots] = useState<Shot[]>([]);
   const [flashKey, setFlashKey] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [mirrorPreview, setMirrorPreview] = useState(() => loadSettings().mirrorPreview);
+  const toggleMirror = () => {
+    const next = !mirrorPreview;
+    setMirrorPreview(next);
+    saveSettings({ mirrorPreview: next });
+  };
 
   // Preview uses the shape of the slot being shot, so what you see is what
   // gets cropped. Special layouts mix landscape and portrait slots.
@@ -142,7 +149,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
         >
           <video
             ref={videoRef}
-            className="preview-video"
+            className={mirrorPreview ? 'preview-video is-mirrored' : 'preview-video'}
             style={{ objectPosition: `50% ${CROP_FOCAL_Y * 100}%` }}
             autoPlay
             playsInline
@@ -198,6 +205,15 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
             {!isTouchDevice && <p className="hint">หรือกด Spacebar</p>}
             <div className="panel-tools">
               <CameraPicker devices={camera.devices} value={camera.deviceId} onChange={camera.selectDevice} />
+              <button
+                type="button"
+                className="btn btn-ghost btn-small"
+                aria-pressed={mirrorPreview}
+                onClick={toggleMirror}
+                title="สลับซ้าย-ขวาเฉพาะภาพบนจอ รูปที่ได้ไม่เปลี่ยน"
+              >
+                ↔ {mirrorPreview ? 'จอแบบกระจก' : 'จอตรงกับรูปจริง'}
+              </button>
               <button type="button" className="btn btn-ghost btn-small" onClick={onBack}>
                 ‹ เปลี่ยนกรอบ
               </button>
