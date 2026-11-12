@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   COUNTDOWN_FIRST_SECONDS,
   COUNTDOWN_NEXT_SECONDS,
   CROP_FOCAL_Y,
+  MAX_CAPTURE_HEIGHT,
   MIRROR_OUTPUT,
   PAUSE_BETWEEN_SHOTS_MS,
   SHOT_COUNT,
+  USE_STILL_PHOTO,
 } from '../config/app';
 import type { FrameConfig } from '../config/frames';
+import { CameraControls } from '../components/CameraControls';
+import { CameraInfo } from '../components/CameraInfo';
 import { CameraPicker } from '../components/CameraPicker';
 import { LayoutMap } from '../components/LayoutMap';
 import { MagicSparkles } from '../components/MagicSparkles';
@@ -18,6 +22,15 @@ import { useFitSize } from '../hooks/useFitSize';
 import { useSpacebar } from '../hooks/useSpacebar';
 import { loadSettings, saveSettings } from '../lib/boothSettings';
 import { captureFrame, waitForVideo } from '../lib/camera';
+import {
+  detectFeatures,
+  focusAt,
+  NO_FEATURES,
+  preferContinuous,
+  takeStill,
+  videoTrack,
+  type CameraFeatures,
+} from '../lib/cameraControls';
 import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isTouchDevice } from '../lib/device';
 import { sound } from '../lib/sound';
@@ -56,6 +69,40 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
   const [flashKey, setFlashKey] = useState(0);
   const [failed, setFailed] = useState(false);
   const [mirrorPreview, setMirrorPreview] = useState(() => loadSettings().mirrorPreview);
+  const [features, setFeatures] = useState<CameraFeatures>(NO_FEATURES);
+  const [showInfo, setShowInfo] = useState(false);
+  const [focusMark, setFocusMark] = useState<{ x: number; y: number; key: number } | null>(null);
+  const track = videoTrack(camera.stream);
+
+  // What this camera can do (zoom, brightness, torch, full-res stills...).
+  useEffect(() => {
+    let alive = true;
+    setFeatures(NO_FEATURES);
+    if (!track) return;
+    void preferContinuous(track);
+    void detectFeatures(track).then((f) => alive && setFeatures(f));
+    return () => {
+      alive = false;
+    };
+  }, [track]);
+
+  /** Tap the preview to focus there (cameras that support it). */
+  const onPreviewTap = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    if (!track || !features.tapToFocus || !video?.videoWidth) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const scale = Math.max(r.width / video.videoWidth, r.height / video.videoHeight);
+    const dw = video.videoWidth * scale;
+    const dh = video.videoHeight * scale;
+    let px = e.clientX - r.left;
+    const py = e.clientY - r.top;
+    setFocusMark({ x: px, y: py, key: Date.now() });
+    if (mirrorPreview) px = r.width - px;
+    const x = (px - (r.width - dw) * 0.5) / dw;
+    const y = (py - (r.height - dh) * CROP_FOCAL_Y) / dh;
+    void focusAt(track, Math.min(1, Math.max(0, x)), Math.min(1, Math.max(0, y)));
+  };
+
   const toggleMirror = () => {
     const next = !mirrorPreview;
     setMirrorPreview(next);
@@ -102,9 +149,16 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
         const video = videoRef.current;
         if (!video) throw new Error('no video');
         await waitForVideo(video);
-        const canvas = captureFrame(video);
         sound.shutter();
         setFlashKey((k) => k + 1);
+        // Phones: a real full-resolution photo (the white flash doubles as a
+        // screen flash for the front camera). Otherwise: the video frame.
+        const liveTrack = videoTrack(camera.stream);
+        const still =
+          USE_STILL_PHOTO && features.still && liveTrack
+            ? await takeStill(liveTrack, features.still, video.videoWidth / video.videoHeight, MAX_CAPTURE_HEIGHT)
+            : null;
+        const canvas = still ?? captureFrame(video);
         const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
         const shot: Shot = { canvas, blob, url: URL.createObjectURL(blob) };
         taken.push(shot);
@@ -127,7 +181,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
       setPhase('ready');
       setFailed(true);
     }
-  }, [phase, camera.status, onBusyChange, onShot, onComplete]);
+  }, [phase, camera.status, camera.stream, features.still, onBusyChange, onShot, onComplete]);
 
   useSpacebar(start, phase === 'ready' && camera.status === 'ready');
 
@@ -145,8 +199,9 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
     <main className="screen capture-screen">
       <div className="capture-stage" ref={stageRef}>
         <div
-          className="preview"
+          className={features.tapToFocus ? 'preview can-focus' : 'preview'}
           style={fit ? { width: fit.width, height: fit.height } : { visibility: 'hidden' }}
+          onPointerDown={onPreviewTap}
         >
           <video
             ref={videoRef}
@@ -158,6 +213,14 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
           />
           <MagicSparkles burstKey={flashKey} />
           <div className="preview-frame" aria-hidden="true" />
+          {focusMark && (
+            <span
+              className="focus-mark"
+              key={focusMark.key}
+              style={{ left: focusMark.x, top: focusMark.y }}
+              aria-hidden="true"
+            />
+          )}
           {camera.status !== 'ready' && (
             <div className="preview-overlay">
               <MagicLoader text="กำลังเปิดกล้อง..." />
@@ -209,8 +272,14 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
               <CameraIcon width="28" height="28" /> เริ่มถ่าย
             </button>
             {!isTouchDevice && <p className="hint">หรือกด Spacebar</p>}
+            <CameraControls track={track} features={features} />
             <div className="panel-tools">
-              <CameraPicker devices={camera.devices} value={camera.deviceId} onChange={camera.selectDevice} />
+              <CameraPicker
+                devices={camera.devices}
+                value={camera.deviceId}
+                onChange={camera.selectDevice}
+                onInfo={() => setShowInfo(true)}
+              />
               <button
                 type="button"
                 className="btn btn-ghost btn-small tool-btn"
@@ -248,6 +317,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
       </div>
 
       {flashKey > 0 && <div className="flash" key={flashKey} aria-hidden="true" />}
+      {showInfo && <CameraInfo stream={camera.stream} devices={camera.devices} onClose={() => setShowInfo(false)} />}
     </main>
   );
 }

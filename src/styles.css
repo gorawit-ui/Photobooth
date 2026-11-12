@@ -985,10 +985,82 @@ h1, h2, h3, p { margin: 0; }
 .camera-picker {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text-dim);
+  gap: var(--space-2);
   width: 100%;
 }
+.camera-picker-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  color: var(--text-dim);
+}
+.btn.icon-only { min-width: var(--tap); width: var(--tap); padding: 0; flex: none; }
+
+/* Camera controls (zoom / brightness / torch) — only shown when supported */
+.camera-controls { display: flex; flex-direction: column; gap: var(--space-2); }
+.cc-row {
+  display: grid;
+  grid-template-columns: 20px auto 1fr 3.2em;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  font-size: var(--fs-control);
+  font-weight: var(--fw-medium);
+}
+.cc-label { white-space: nowrap; }
+.cc-value { text-align: right; font-variant-numeric: tabular-nums; color: #f0d28c; }
+.cc-row input[type='range'] { width: 100%; min-width: 0; accent-color: #e3b55c; height: 28px; }
+
+/* Tap-to-focus */
+.preview.can-focus { cursor: crosshair; }
+.focus-mark {
+  position: absolute;
+  z-index: 3;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  border: 3px solid #ffd978;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(40, 24, 0, 0.55), 0 0 14px rgba(255, 210, 120, 0.9), inset 0 0 0 1px rgba(40, 24, 0, 0.45);
+  pointer-events: none;
+  animation: focus-mark 1.2s ease-out forwards;
+}
+@keyframes focus-mark {
+  0% { transform: scale(1.4); opacity: 0; }
+  20% { transform: scale(1); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+
+/* Camera info panel */
+.camera-info-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: rgba(3, 8, 22, 0.82);
+}
+.camera-info {
+  background: linear-gradient(160deg, #18265a, #0a1233); max-height: calc(100 * var(--vh) - 32px); text-align: left; user-select: text; -webkit-user-select: text; }
+.camera-info-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.camera-info h3 { color: var(--gold-300); font-size: 1rem; font-weight: 600; }
+.camera-info-list { margin: 0; display: grid; gap: 6px; }
+.camera-info-list div { display: grid; grid-template-columns: minmax(120px, 38%) 1fr; gap: 12px; }
+.camera-info-list dt { color: var(--text-dim); }
+.camera-info-list dd { margin: 0; overflow-wrap: anywhere; }
+.camera-info-devices { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.camera-info-devices span { color: var(--text-dim); font-size: 0.875rem; }
 .camera-picker select {
   flex: 1;
   min-width: 0;
@@ -1049,6 +1121,7 @@ h1, h2, h3, p { margin: 0; }
   }
   .panel-tools { flex-direction: row; flex-wrap: wrap; justify-content: center; }
   .camera-picker { width: auto; flex: 1 1 220px; }
+  .camera-controls { width: 100%; }
   .thumb-strip {
     bottom: auto;
     right: auto;
@@ -1078,7 +1151,7 @@ h1, h2, h3, p { margin: 0; }
   .btn-shoot svg { width: 24px; height: 24px; }
   .panel-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0; }
   .panel-tools .camera-picker { grid-column: 1 / -1; }
-  .panel-tools .camera-picker > span { display: none; }
+  .panel-tools .camera-picker-select > span { display: none; }
   .panel-tools .tool-btn { width: 100%; min-width: 0; white-space: normal; line-height: 1.25; padding: 0.4em 0.6em; font-size: 0.875rem; }
   .thumb { width: 44px; }
   .thumb-strip { padding: 6px; gap: 6px; }

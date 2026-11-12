@@ -14,6 +14,9 @@ export const isIOS = isIPad || /iPhone|iPod/.test(ua);
 export const isTouchDevice =
   typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
+/** Phones and tablets (where asking for a 4K stream makes sense). */
+export const isMobileDevice = isIOS || /Android|Mobile/i.test(ua);
+
 export function detectBrowser(): BrowserKind {
   if (/Edg(e|A|iOS)?\//.test(ua)) return 'edge';
   if (/Firefox|FxiOS/.test(ua)) return 'firefox';

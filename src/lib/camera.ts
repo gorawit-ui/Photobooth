@@ -1,4 +1,11 @@
-import { CAMERA_IDEAL_HEIGHT, CAMERA_IDEAL_WIDTH } from '../config/app';
+import {
+  CAMERA_IDEAL_HEIGHT,
+  CAMERA_IDEAL_WIDTH,
+  MAX_CAPTURE_HEIGHT,
+  MOBILE_CAMERA_IDEAL_HEIGHT,
+  MOBILE_CAMERA_IDEAL_WIDTH,
+} from '../config/app';
+import { isMobileDevice } from './device';
 
 export type CameraErrorKind =
   | 'denied' // user or OS blocked the permission
@@ -45,8 +52,9 @@ export async function openCamera(deviceId?: string): Promise<MediaStream> {
   if (!navigator.mediaDevices?.getUserMedia) throw new CameraError('unsupported');
 
   const video: MediaTrackConstraints = {
-    width: { ideal: CAMERA_IDEAL_WIDTH },
-    height: { ideal: CAMERA_IDEAL_HEIGHT },
+    width: { ideal: isMobileDevice ? MOBILE_CAMERA_IDEAL_WIDTH : CAMERA_IDEAL_WIDTH },
+    height: { ideal: isMobileDevice ? MOBILE_CAMERA_IDEAL_HEIGHT : CAMERA_IDEAL_HEIGHT },
+    frameRate: { ideal: 30 },
   };
   if (deviceId) video.deviceId = { exact: deviceId };
   else video.facingMode = 'user';
@@ -90,19 +98,22 @@ export function activeDeviceId(stream: MediaStream | null): string | undefined {
 }
 
 /**
- * Grab the current video frame at full camera resolution, un-mirrored.
+ * Grab the current video frame, un-mirrored, at camera resolution (scaled
+ * down to MAX_CAPTURE_HEIGHT for 4K phone streams).
  * Mirroring is applied later during composition (see MIRROR_OUTPUT).
  */
 export function captureFrame(video: HTMLVideoElement): HTMLCanvasElement {
-  const w = video.videoWidth;
-  const h = video.videoHeight;
-  if (!w || !h) throw new Error('Video not ready');
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh) throw new Error('Video not ready');
+  const scale = Math.min(1, MAX_CAPTURE_HEIGHT / vh);
   const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = Math.round(vw * scale);
+  canvas.height = Math.round(vh * scale);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2D canvas not available');
-  ctx.drawImage(video, 0, 0, w, h);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
 

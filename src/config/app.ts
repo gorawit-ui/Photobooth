@@ -35,9 +35,22 @@ export const GIF_FRAME_DELAY_MS = 600;
 /** Corner radius of each photo slot, in output pixels (1200x1800 space). */
 export const SLOT_RADIUS = 12;
 
-/** Requested camera resolution. The browser picks the closest it supports. */
+/**
+ * Requested camera resolution; the browser picks the closest it supports.
+ * Computers stay at 1080p (webcams, and HDMI capture cards for the Sony —
+ * some cheap cards fake 4K by upscaling, which looks softer). Phones and
+ * tablets ask for up to 4K so their sensors are used properly.
+ */
 export const CAMERA_IDEAL_WIDTH = 1920;
 export const CAMERA_IDEAL_HEIGHT = 1080;
+export const MOBILE_CAMERA_IDEAL_WIDTH = 3840;
+export const MOBILE_CAMERA_IDEAL_HEIGHT = 2160;
+
+/** Captured shots are scaled to at most this height (memory on phones; photos use ≤1080). */
+export const MAX_CAPTURE_HEIGHT = 1440;
+
+/** Use the camera's full-resolution still photo (phones) instead of a video frame when available. */
+export const USE_STILL_PHOTO = true;
 
 /** Prefix for downloaded files: magical-booth-YYYYMMDD-HHmmss.jpg */
 export const FILE_PREFIX = 'magical-booth';

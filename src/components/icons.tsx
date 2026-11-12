@@ -126,3 +126,37 @@ export const ChevronLeftIcon = () => (
     <path d="m14.5 6-6 6 6 6" />
   </Icon>
 );
+
+export const InfoIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v6M12 7.5v.01" strokeWidth="2.2" />
+  </Icon>
+);
+
+export const ZoomIcon = () => (
+  <Icon>
+    <circle cx="10.5" cy="10.5" r="6.5" />
+    <path d="m20 20-4.8-4.8M10.5 7.5v6M7.5 10.5h6" />
+  </Icon>
+);
+
+export const SunIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+  </Icon>
+);
+
+export const TorchIcon = () => (
+  <Icon>
+    <path d="M8 3h8l-1 6h-6zM9 9h6l-1 12h-4z" />
+    <path d="M12 13v3" />
+  </Icon>
+);
+
+export const CloseIcon = () => (
+  <Icon>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </Icon>
+);
