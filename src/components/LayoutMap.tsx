@@ -6,14 +6,15 @@ interface Props {
   current: number;
   /** Number of shots already taken (filled in). */
   taken: number;
+  className?: string;
 }
 
 /** Tiny diagram of the frame layout so guests see which photo comes next. */
-export function LayoutMap({ frame, current, taken }: Props) {
+export function LayoutMap({ frame, current, taken, className }: Props) {
   const { width, height } = frameSize(frame);
   return (
     <svg
-      className="layout-map"
+      className={className ? `layout-map ${className}` : 'layout-map'}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label={current >= 0 ? `ช่องที่ ${current + 1} จาก ${frame.slots.length}` : 'ตำแหน่งรูปในกรอบ'}

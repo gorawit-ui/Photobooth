@@ -113,3 +113,16 @@ export const ImageIcon = () => (
 );
 
 export const SparkleIcon = MotionOnIcon;
+
+export const FlipIcon = () => (
+  <Icon>
+    <path d="M12 3v18" strokeDasharray="2 2.5" />
+    <path d="M9 7 4 17h5zM15 7l5 10h-5z" />
+  </Icon>
+);
+
+export const ChevronLeftIcon = () => (
+  <Icon>
+    <path d="m14.5 6-6 6 6 6" />
+  </Icon>
+);

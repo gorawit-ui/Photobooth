@@ -22,7 +22,7 @@ import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isTouchDevice } from '../lib/device';
 import { sound } from '../lib/sound';
 import type { Shot } from '../types';
-import { CameraIcon } from '../components/icons';
+import { CameraIcon, ChevronLeftIcon, FlipIcon } from '../components/icons';
 
 interface Props {
   frame: FrameConfig;
@@ -190,10 +190,15 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
             <div className="panel-status">
               <p className="panel-title">{frame.name}</p>
               <p className="panel-text">
-                ถ่ายทั้งหมด {SHOT_COUNT} ช็อต ช็อตแรกนับถอยหลัง {COUNTDOWN_FIRST_SECONDS} วินาที ช็อตถัดไป {COUNTDOWN_NEXT_SECONDS} วินาที
+                <span className="text-long">
+                  ถ่ายทั้งหมด {SHOT_COUNT} ช็อต ช็อตแรกนับถอยหลัง {COUNTDOWN_FIRST_SECONDS} วินาที ช็อตถัดไป {COUNTDOWN_NEXT_SECONDS} วินาที
+                </span>
+                <span className="text-short">
+                  {SHOT_COUNT} ช็อต · นับถอยหลัง {COUNTDOWN_FIRST_SECONDS} / {COUNTDOWN_NEXT_SECONDS} วินาที
+                </span>
               </p>
               {failed && <p className="panel-error">ถ่ายไม่สำเร็จ ลองกดเริ่มใหม่อีกครั้ง</p>}
-              <LayoutMap frame={frame} current={-1} taken={0} />
+              <LayoutMap frame={frame} current={-1} taken={0} className="layout-map--ready" />
             </div>
             <button
               type="button"
@@ -208,15 +213,17 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
               <CameraPicker devices={camera.devices} value={camera.deviceId} onChange={camera.selectDevice} />
               <button
                 type="button"
-                className="btn btn-ghost btn-small"
+                className="btn btn-ghost btn-small tool-btn"
                 aria-pressed={mirrorPreview}
                 onClick={toggleMirror}
                 title="สลับซ้าย-ขวาเฉพาะภาพบนจอ รูปที่ได้ไม่เปลี่ยน"
               >
-                ↔ {mirrorPreview ? 'จอแบบกระจก' : 'จอตรงกับรูปจริง'}
+                <FlipIcon />
+                {mirrorPreview ? 'จอแบบกระจก' : 'จอตรงกับรูปจริง'}
               </button>
-              <button type="button" className="btn btn-ghost btn-small" onClick={onBack}>
-                ‹ เปลี่ยนกรอบ
+              <button type="button" className="btn btn-ghost btn-small tool-btn" onClick={onBack}>
+                <ChevronLeftIcon />
+                เปลี่ยนกรอบ
               </button>
             </div>
           </>

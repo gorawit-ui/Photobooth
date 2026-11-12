@@ -972,6 +972,8 @@ h1, h2, h3, p { margin: 0; }
   color: transparent;
 }
 .btn-shoot { width: 100%; }
+.text-short { display: none; }
+.tool-btn { gap: var(--space-2); font-size: 0.9375rem; padding: 0.4em 1em; }
 .panel-tools {
   display: flex;
   flex-direction: column;
@@ -1045,14 +1047,41 @@ h1, h2, h3, p { margin: 0; }
     padding-bottom: 0;
     gap: 12px;
   }
-  .panel-tools { flex-direction: row; justify-content: center; }
-  .camera-picker { width: auto; flex: 1; }
+  .panel-tools { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .camera-picker { width: auto; flex: 1 1 220px; }
   .thumb-strip {
     bottom: auto;
     right: auto;
     top: calc(12px + var(--safe-top));
     left: calc(12px + var(--safe-left));
   }
+}
+
+/* Phones: everything fits the width; if the screen is short, the page scrolls
+   instead of pushing controls off-screen. */
+@media (orientation: portrait) and (max-width: 700px) {
+  .capture-screen {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: calc(var(--safe-top) + 76px);
+    padding-bottom: calc(16px + var(--safe-bottom));
+  }
+  .capture-stage { flex: 1 0 auto; min-height: min(46 * var(--vh), 460px); }
+  .capture-panel .text-long,
+  .layout-map--ready { display: none; }
+  .capture-panel .text-short { display: inline; }
+  .capture-panel { flex: none; gap: 10px; }
+  .capture-panel .panel-text { font-size: 0.9375rem; line-height: 1.5; }
+  .layout-map { width: 52px; }
+  .btn-shoot { min-height: 64px; font-size: 1.5rem; }
+  .btn-shoot svg { width: 24px; height: 24px; }
+  .panel-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0; }
+  .panel-tools .camera-picker { grid-column: 1 / -1; }
+  .panel-tools .camera-picker > span { display: none; }
+  .panel-tools .tool-btn { width: 100%; min-width: 0; white-space: normal; line-height: 1.25; padding: 0.4em 0.6em; font-size: 0.875rem; }
+  .thumb { width: 44px; }
+  .thumb-strip { padding: 6px; gap: 6px; }
 }
 
 /* ---------- Loader ---------- */
