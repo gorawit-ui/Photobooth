@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { installInteractionGuards } from './lib/guards';
 import { sound } from './lib/sound';
+import './fonts.css';
 import './styles.css';
 
 installInteractionGuards();

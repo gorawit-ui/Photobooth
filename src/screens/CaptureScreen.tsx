@@ -22,6 +22,7 @@ import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isTouchDevice } from '../lib/device';
 import { sound } from '../lib/sound';
 import type { Shot } from '../types';
+import { CameraIcon } from '../components/icons';
 
 interface Props {
   frame: FrameConfig;
@@ -200,7 +201,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
               onClick={start}
               disabled={camera.status !== 'ready'}
             >
-              📸 เริ่มถ่าย
+              <CameraIcon width="28" height="28" /> เริ่มถ่าย
             </button>
             {!isTouchDevice && <p className="hint">หรือกด Spacebar</p>}
             <div className="panel-tools">

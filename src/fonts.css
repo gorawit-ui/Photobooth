@@ -1,0 +1,45 @@
+/*
+ * Self-hosted fonts (SIL Open Font License — see /fonts-licenses/).
+ * Bundled by Vite so they load offline at the venue and never fall back to
+ * system fonts because a font CDN is slow or blocked.
+ *
+ *   IBM Plex Sans Thai  400 / 500 / 600  — UI, body, buttons (Thai + Latin)
+ *   Cinzel Decorative   700              — event title, countdown numbers
+ *   Chonburi            400              — Thai display title
+ */
+
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  src: url('./assets/fonts/IBMPlexSansThai-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  src: url('./assets/fonts/IBMPlexSansThai-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  src: url('./assets/fonts/IBMPlexSansThai-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cinzel Decorative';
+  src: url('./assets/fonts/CinzelDecorative-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Chonburi';
+  src: url('./assets/fonts/Chonburi-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

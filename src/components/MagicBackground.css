@@ -1,0 +1,23 @@
+/* "Enchanted Station" landing background — from the designer handoff (TDFB_Landing_Motion_Claude_Handoff). Decorative only. */
+.tdfb-bg{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none;background:#1b2d4c;--px:0px;--py:0px;--motion-opacity:1}
+.tdfb-bg__art{position:absolute;inset:-2%;width:104%;height:104%;transform:translate3d(var(--px),var(--py),0);transition:transform 1.3s ease-out;will-change:transform}
+.tdfb-bg__art img{width:100%;height:100%;object-fit:cover;object-position:57% 50%;display:block}
+.tdfb-bg__veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,25,46,.88),rgba(17,30,52,.64) 30%,rgba(22,38,61,.14) 57%,transparent 77%),linear-gradient(0deg,rgba(8,21,35,.36),transparent 36%,rgba(20,35,56,.05))}
+.tdfb-bg__glow{position:absolute;width:29vw;height:34vh;right:8%;top:12%;background:radial-gradient(ellipse,rgba(255,210,126,.13),transparent 70%);mix-blend-mode:screen;animation:tdfb-glow 7s ease-in-out infinite alternate}
+.tdfb-bg__mist{position:absolute;left:-30%;width:160%;height:28%;bottom:4%;opacity:.16;background:radial-gradient(ellipse at 20% 60%,rgba(201,217,238,.65),transparent 36%),radial-gradient(ellipse at 60% 45%,rgba(205,222,242,.5),transparent 38%),radial-gradient(ellipse at 90% 70%,rgba(195,214,239,.4),transparent 40%);filter:blur(18px);animation:tdfb-mist 42s ease-in-out infinite alternate;will-change:transform}
+.tdfb-bg__mist--far{bottom:22%;height:18%;opacity:.12;animation-duration:60s;animation-direction:alternate-reverse;filter:blur(25px)}
+.tdfb-bg__particles{position:absolute;inset:0;width:100%;height:100%;opacity:var(--motion-opacity)}
+.tdfb-bg__trail{position:absolute;inset:0;width:100%;height:100%;opacity:.48;overflow:visible}
+.tdfb-bg__trail .base{fill:none;stroke:url(#tdfb-ribbon);stroke-width:1.2;opacity:.35}
+.tdfb-bg__trail .runner{fill:none;stroke:url(#tdfb-ribbon);stroke-width:2;stroke-linecap:round;stroke-dasharray:5 28 1 370;animation:tdfb-ribbon 24s linear infinite;filter:drop-shadow(0 0 5px #f4d58c)}
+.tdfb-bg__candle{position:absolute;left:var(--x);top:var(--y);width:7px;height:31px;transform:scale(var(--s));border-radius:3px 3px 2px 2px;background:linear-gradient(90deg,#aaa391,#fff4d4 48%,#cbbf9c);box-shadow:0 2px 8px #101c3229;opacity:.8;animation:tdfb-float var(--d) ease-in-out var(--delay) infinite alternate}
+.tdfb-bg__candle:before{content:"";position:absolute;left:1px;top:-13px;width:6px;height:13px;background:#fff4bf;border-radius:65% 50% 60% 40%;box-shadow:0 0 8px 3px #ffcf7566,0 0 25px 12px #ffd0751f;transform-origin:50% 100%;animation:tdfb-flicker 2.1s ease-in-out var(--delay) infinite alternate}
+.tdfb-bg[data-motion="paused"] *,.tdfb-bg[data-hidden="true"] *{animation-play-state:paused!important}
+.tdfb-bg[data-motion="paused"] .tdfb-bg__art{transform:none;transition:none}
+@keyframes tdfb-mist{from{transform:translate3d(-4%,0,0)}to{transform:translate3d(7%,-7%,0)}}
+@keyframes tdfb-glow{from{opacity:.45}to{opacity:.9}}
+@keyframes tdfb-ribbon{to{stroke-dashoffset:-1212}}
+@keyframes tdfb-float{from{translate:0 -8px}to{translate:3px 10px}}
+@keyframes tdfb-flicker{0%{scale:.9 1;opacity:.85}48%{scale:1.1 .9;opacity:1}100%{scale:.9 1.15;opacity:.75}}
+@media(max-width:700px),(orientation:portrait){.tdfb-bg__art img{object-position:50% 64%}.tdfb-bg__veil{background:linear-gradient(180deg,rgba(12,27,49,.66),rgba(17,34,58,.56) 33%,rgba(21,39,66,.07) 65%,rgba(10,25,43,.15))}.tdfb-bg__candle{display:none}.tdfb-bg__glow{width:66vw;height:28vh;top:57%;right:0}.tdfb-bg__mist{bottom:10%;height:19%;opacity:.12}.tdfb-bg__mist--far{bottom:26%;opacity:.08}.tdfb-bg__trail{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.tdfb-bg *{animation:none!important;transition:none!important}.tdfb-bg__art{transform:none!important}.tdfb-bg__particles{opacity:0}}

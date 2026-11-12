@@ -14,9 +14,11 @@ export interface BoothSettings {
    * preview matches the saved photos exactly.
    */
   mirrorPreview: boolean;
+  /** Ambient motion on the landing background paused by staff. */
+  motionPaused: boolean;
 }
 
-const DEFAULTS: BoothSettings = { mirrorPreview: false };
+const DEFAULTS: BoothSettings = { mirrorPreview: false, motionPaused: false };
 
 export function loadSettings(): BoothSettings {
   try {
@@ -26,6 +28,7 @@ export function loadSettings(): BoothSettings {
     return {
       cameraId: typeof v.cameraId === 'string' && v.cameraId ? v.cameraId : undefined,
       mirrorPreview: typeof v.mirrorPreview === 'boolean' ? v.mirrorPreview : DEFAULTS.mirrorPreview,
+      motionPaused: typeof v.motionPaused === 'boolean' ? v.motionPaused : DEFAULTS.motionPaused,
     };
   } catch {
     return { ...DEFAULTS };

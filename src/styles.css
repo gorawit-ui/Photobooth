@@ -1,8 +1,56 @@
 /* ==========================================================================
-   Magical Night Photo Booth — deep blue & gold
+   The Order of Unity Photo Booth — "Contemporary Magical Experience"
+   Magic lives in the title, colour and details; controls stay plain,
+   modern and easy to hit.
    ========================================================================== */
 
 :root {
+  /* --- Typography ---------------------------------------------------- */
+  --font-sans: 'IBM Plex Sans Thai', 'Sukhumvit Set', 'Thonburi', 'Leelawadee UI', system-ui, sans-serif;
+  --font-display: 'Cinzel Decorative', 'Cinzel', Georgia, serif; /* event title only */
+  --font-display-th: 'Chonburi', var(--font-sans); /* Thai display title only */
+  --fw-regular: 400; /* descriptions */
+  --fw-medium: 500; /* navbar, secondary buttons, labels */
+  --fw-semibold: 600; /* primary buttons, headings */
+  --fs-caption: 0.75rem; /* 12px — keycaps, ticket kicker */
+  --fs-control: 0.875rem; /* 14px — navbar controls */
+  --fs-body: 1rem; /* 16px — descriptions */
+  --lh-body: 1.6;
+  --tracking-caps: 0.1em; /* uppercase Latin labels only; Thai gets none */
+
+  /* --- Shape & spacing ---------------------------------------------- */
+  --radius-control: 12px;
+  --radius-ticket: 14px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --tap: 44px; /* minimum touch target */
+
+  /* --- Motion -------------------------------------------------------- */
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* --- Control surfaces --------------------------------------------- */
+  --control-bg: rgba(16, 29, 54, 0.62);
+  --control-bg-hover: rgba(30, 50, 84, 0.78);
+  --control-border: rgba(232, 200, 120, 0.32);
+  --control-border-hover: rgba(232, 200, 120, 0.6);
+  --control-text: #f3e6c4;
+  --focus-ring: #fff0bf;
+
+  /* --- Ticket (primary CTA) ------------------------------------------ */
+  --ticket-bg: #f5e6be;
+  --ticket-bg-hover: #f9ecca;
+  --ticket-ink: #542832;
+  --ticket-ink-soft: rgba(84, 40, 50, 0.72);
+  --ticket-border: #d4b36a;
+
+  /* --- Palette ------------------------------------------------------- */
+  --ink: #101b32;
+  --parchment: #f2e6c9;
   --navy-950: #03061a;
   --navy-900: #060b26;
   --navy-800: #0b1540;
@@ -55,8 +103,8 @@ body {
 body {
   background: var(--navy-950);
   color: var(--text);
-  font-family: 'Mitr', 'Sukhumvit Set', 'Thonburi', 'Leelawadee UI', system-ui, sans-serif;
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   user-select: none;
@@ -71,8 +119,12 @@ video {
   user-select: none;
 }
 
+/* Controls never inherit a display serif from a heading. */
 button,
-select { font: inherit; color: inherit; }
+select,
+input,
+a.btn { font-family: var(--font-sans); font-size: inherit; color: inherit; }
+kbd { font-family: var(--font-sans); }
 
 h1, h2, h3, p { margin: 0; }
 
@@ -224,13 +276,14 @@ h1, h2, h3, p { margin: 0; }
   align-items: center;
   justify-content: center;
   gap: 0.4em;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), filter var(--dur) var(--ease), background-color var(--dur) var(--ease), opacity var(--dur);
   touch-action: manipulation;
   white-space: nowrap;
 }
 .btn:active { transform: scale(0.96); }
 .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
-.btn:focus-visible { outline: 3px solid var(--gold-100); outline-offset: 3px; }
+.btn:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.btn svg { flex: none; }
 
 .btn-gold {
   background: var(--gold-gradient);
@@ -262,171 +315,250 @@ h1, h2, h3, p { margin: 0; }
   50% { box-shadow: 0 6px 34px rgba(227, 181, 76, 0.6), 0 0 0 14px rgba(246, 215, 126, 0); }
 }
 
-.icon-btn {
-  appearance: none;
-  border: 1px solid rgba(246, 215, 126, 0.45);
-  background: rgba(6, 11, 38, 0.65);
-  color: var(--gold-300);
-  border-radius: 999px;
-  min-height: 44px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-@media (max-width: 900px) {
-  .icon-btn-label { display: none; }
-  .screen-header { padding-right: 110px; }
-}
 .top-actions {
   position: absolute;
   z-index: 30;
-  top: calc(12px + var(--safe-top));
-  right: calc(12px + var(--safe-right));
+  top: calc(16px + var(--safe-top));
+  right: calc(16px + var(--safe-right));
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
+}
+
+/* Navbar controls: one family — translucent navy, thin pale-gold edge, low shadow */
+.nav-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 var(--space-4) 0 var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--control-bg);
+  color: var(--control-text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-control);
+  font-weight: var(--fw-medium);
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(4, 10, 24, 0.22);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: transform var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav-btn svg { flex: none; }
+/* Toggle state is visible, not just announced: "on" gets a warm tint + gold icon */
+.nav-btn[aria-pressed='true'] { background-color: rgba(40, 52, 76, 0.74); border-color: rgba(232, 200, 120, 0.5); }
+.nav-btn[aria-pressed='true'] svg { color: #f0d28c; }
+.nav-btn[aria-pressed='false'] .nav-btn-label { color: rgba(243, 230, 196, 0.72); }
+.nav-btn[aria-pressed='false'] svg { color: rgba(243, 230, 196, 0.6); }
+@media (hover: hover) {
+  .nav-btn:hover:not(:disabled) {
+    background-color: var(--control-bg-hover);
+    border-color: var(--control-border-hover);
+    transform: translateY(-1px);
+  }
+}
+.nav-btn:active:not(:disabled) { transform: translateY(1px); }
+.nav-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.nav-btn:disabled { opacity: 0.5; cursor: default; }
+@media (max-width: 900px) {
+  /* Icon-only on small screens; aria-label keeps the name */
+  .nav-btn { padding: 0; justify-content: center; }
+  .nav-btn-label { display: none; }
+  .screen-header { padding-right: 110px; }
 }
 
 /* ---------- Home: "The Order of Unity" ---------- */
 
+/* Hierarchy: event title → start ticket → Thai title → description → controls */
 .home-screen {
+  isolation: isolate; /* keeps the decorative background (z-index:-1) inside */
+  overflow: hidden;
   justify-content: center;
   align-items: flex-start;
-  overflow: hidden;
-  background: radial-gradient(ellipse 80% 70% at 30% 10%, rgba(30, 44, 107, 0.85) 0%, rgba(11, 20, 51, 0.6) 55%, transparent 100%);
+  padding-left: calc(clamp(24px, 7vw, 120px) + var(--safe-left));
+  background: #1b2d4c;
 }
-.home-sky,
-.home-castle {
-  position: absolute;
-  pointer-events: none;
-}
-.home-sky { inset: 0; width: 100%; height: 100%; }
-.home-moon-shape {
-  fill: #f3d27a;
-  filter: drop-shadow(0 0 18px rgba(246, 215, 126, 0.55));
-}
-.home-trail { animation: trail-flow 6s linear infinite; }
-@keyframes trail-flow { to { stroke-dashoffset: -100; } }
-.home-castle {
-  right: 0;
-  bottom: 0;
-  width: 52%;
-  max-width: 760px;
-  height: auto;
-}
-.home-windows { animation: window-glow 3.2s ease-in-out infinite alternate; }
-@keyframes window-glow { from { opacity: 0.75; } to { opacity: 1; } }
-
 .home-content {
   position: relative;
-  max-width: 760px;
-  padding: 0 0 clamp(24px, 6vmin, 72px) 6%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: clamp(8px, 1.6vmin, 14px);
   text-align: left;
+  text-shadow: 0 1px 12px rgba(8, 16, 32, 0.45);
 }
 .home-eyebrow {
-  font-family: 'Cinzel', Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(0.95rem, 2.4vmin, 1.25rem);
-  letter-spacing: 0.42em;
-  color: #e9c46a;
+  font-size: var(--fs-control);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.12em;
+  color: #edd59c;
+  margin-bottom: var(--space-4);
 }
 .home-title {
-  font-family: 'Cinzel Decorative', Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(2.6rem, 10vmin, 4.75rem);
-  line-height: 1.04;
-  background: linear-gradient(180deg, #fff1c4 0%, #e9c46a 48%, #b07a22 100%);
+  font-size: clamp(2.75rem, 6.2vw, 5.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  font-variant-ligatures: none; /* Cinzel Decorative's TH ligature reads oddly */
+  font-feature-settings: 'liga' 0, 'dlig' 0;
+  color: #f0d28c;
+  background: linear-gradient(180deg, #fff1c8 0%, #f0d28c 52%, #c9953f 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 24px rgba(233, 196, 106, 0.2));
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 18px rgba(15, 29, 54, 0.45));
+  text-shadow: none;
 }
+.home-title span { display: block; }
 .home-thai {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  font-family: var(--font-display-th);
+  font-weight: 400;
+  font-size: clamp(1.375rem, 2.3vw, 1.875rem);
+  line-height: 1.6; /* room for Thai tone marks above and vowels below */
+  color: var(--parchment);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(213, 175, 102, 0.55);
 }
-.home-thai p {
-  font-family: 'Chonburi', 'Mitr', serif;
-  font-size: clamp(1.5rem, 5vmin, 2.4rem);
-  color: var(--parchment, #f2e6c9);
-}
-.home-thai span {
-  height: 1px;
-  width: clamp(24px, 4vmin, 48px);
-  background: linear-gradient(90deg, transparent, #d4a64a);
-}
-.home-thai span:last-child { background: linear-gradient(90deg, #d4a64a, transparent); }
 .home-sub {
-  margin: 4px 0 clamp(10px, 2.6vmin, 22px);
-  font-size: clamp(1rem, 2.4vmin, 1.15rem);
-  font-weight: 300;
-  color: rgba(242, 230, 201, 0.78);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  color: rgba(242, 236, 222, 0.9);
+  margin: var(--space-1) 0 var(--space-6);
 }
 
-/* Start button shaped like a vintage train ticket */
+/* Start button: a compact travel ticket, the most prominent thing on the page */
 .ticket-btn {
   appearance: none;
+  position: relative;
   display: flex;
   align-items: stretch;
+  min-height: 84px;
+  width: min(100%, 360px);
   padding: 0;
-  border: 0;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #faf1d8 0%, #e8d4a4 100%);
-  box-shadow: 0 0 0 2px #d4a64a, 0 0 0 6px rgba(212, 166, 74, 0.18), 0 18px 48px rgba(212, 166, 74, 0.35);
-  cursor: pointer;
-  font-family: inherit;
+  border: 1px solid var(--ticket-border);
+  border-radius: var(--radius-ticket);
+  background: var(--ticket-bg);
+  color: var(--ticket-ink);
+  font-family: var(--font-sans);
   text-align: left;
-  min-height: 88px;
-  animation: ticket-glow 2.8s ease-in-out infinite;
-  transition: transform 0.15s ease;
-}
-.ticket-btn:active { transform: scale(0.97); }
-.ticket-btn:focus-visible { outline: 3px solid var(--gold-100); outline-offset: 6px; }
-@keyframes ticket-glow {
-  50% { box-shadow: 0 0 0 2px #d4a64a, 0 0 0 8px rgba(212, 166, 74, 0.26), 0 18px 60px rgba(212, 166, 74, 0.55); }
+  text-shadow: none;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(212, 179, 106, 0.22), 0 8px 24px rgba(4, 12, 30, 0.35);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
 }
 .ticket-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
-  padding: clamp(12px, 2vmin, 16px) clamp(24px, 4vmin, 36px) clamp(14px, 2.2vmin, 18px);
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-5);
 }
 .ticket-kicker {
-  font-family: 'Cinzel', Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(0.7rem, 1.7vmin, 0.82rem);
-  letter-spacing: 0.32em;
-  color: #7a1e2b;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1.3;
+  color: var(--ticket-ink-soft);
 }
 .ticket-label {
-  font-family: 'Chonburi', 'Mitr', serif;
-  font-size: clamp(1.7rem, 4.6vmin, 2.25rem);
-  line-height: 1.15;
-  color: #5a1420;
+  font-size: 1.5rem; /* 24px */
+  font-weight: var(--fw-semibold);
+  line-height: 1.5; /* keeps Thai tone marks clear of the edge */
 }
+/* Perforated stub with a plain arrow */
 .ticket-stub {
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 0 clamp(18px, 3vmin, 26px);
-  border-left: 2px dashed #b98b3a;
-  color: #7a1e2b;
+  justify-content: center;
+  width: 68px;
+  flex: none;
+  color: var(--ticket-ink);
+  background-image: radial-gradient(circle, rgba(84, 40, 50, 0.38) 1.3px, transparent 1.6px);
+  background-size: 2px 8px;
+  background-repeat: repeat-y;
+  background-position: 0 center;
+  transition: transform var(--dur) var(--ease);
 }
-.home-hint { color: rgba(242, 230, 201, 0.6); }
+@media (hover: hover) {
+  .ticket-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background-color: var(--ticket-bg-hover);
+    box-shadow: 0 0 0 3px rgba(212, 179, 106, 0.32), 0 12px 28px rgba(4, 12, 30, 0.4);
+  }
+  .ticket-btn:hover:not(:disabled) .ticket-stub { transform: translateX(2px); }
+}
+.ticket-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 3px rgba(212, 179, 106, 0.22), 0 3px 10px rgba(4, 12, 30, 0.35);
+}
+.ticket-btn:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+.ticket-btn:disabled { opacity: 0.55; cursor: default; }
 
-/* Portrait (iPad upright): centre the text above the castle */
-@media (orientation: portrait) {
-  .home-screen { align-items: center; justify-content: flex-start; padding-top: calc(18vh + var(--safe-top)); }
-  .home-content { align-items: center; text-align: center; padding: 0 16px; }
-  .home-castle { width: 100%; max-width: none; }
-  .home-sparkles { display: none; }
+.home-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--fs-control);
+  color: rgba(226, 230, 236, 0.85);
+}
+.keycap {
+  display: inline-block;
+  min-width: 52px;
+  padding: 2px var(--space-2);
+  border: 1px solid rgba(226, 230, 236, 0.35);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  line-height: 1.5;
+  text-align: center;
+  color: #f2ede0;
+  background: rgba(16, 29, 54, 0.45);
+}
+
+/* Narrow screens (phones, portrait tablets): text in the upper safe zone, centred */
+@media (max-width: 700px), (orientation: portrait) {
+  .home-screen {
+    align-items: center;
+    justify-content: flex-start;
+    padding: calc(96px + var(--safe-top)) 20px calc(24px + var(--safe-bottom));
+  }
+  .home-content { align-items: center; text-align: center; max-width: 480px; }
+  .home-eyebrow { font-size: 0.8125rem; margin-bottom: var(--space-3); }
+  .home-title { font-size: clamp(2.5rem, 12.5vw, 3.5rem); }
+  .home-thai { border-top: 0; padding-top: 0; margin-top: var(--space-3); }
+  .home-thai::before {
+    content: '';
+    display: block;
+    width: 56px;
+    height: 1px;
+    margin: 0 auto var(--space-3);
+    background: linear-gradient(90deg, transparent, #d5af66, transparent);
+  }
+  .home-sub { font-size: 0.9375rem; margin-bottom: var(--space-5); }
+  .ticket-btn { min-height: 80px; width: min(100%, 340px); }
+  .ticket-label { font-size: 1.375rem; } /* 22px */
+  .ticket-stub { width: 60px; }
+}
+@media (orientation: portrait) and (min-width: 701px) {
+  .home-screen { padding-top: calc(12vh + var(--safe-top)); }
+  .home-title { font-size: clamp(3.5rem, 9vw, 5rem); }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  .home-title { font-size: clamp(2.25rem, 9vh, 3.5rem); }
+  .home-sub { margin-bottom: var(--space-4); }
 }
 
 /* ---------- Frame selection ---------- */
@@ -630,7 +762,7 @@ h1, h2, h3, p { margin: 0; }
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: 'Cinzel Decorative', Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(7rem, 30vmin, 20rem);
   line-height: 1;
@@ -679,7 +811,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .layout-map-sheet { fill: rgba(242, 230, 201, 0.1); stroke: rgba(246, 215, 126, 0.4); stroke-width: 12; }
 .layout-map-slot rect { fill: rgba(242, 230, 201, 0.16); transition: fill 0.25s; }
-.layout-map-slot text { fill: rgba(242, 230, 201, 0.55); font-family: 'Mitr', sans-serif; font-weight: 500; }
+.layout-map-slot text { fill: rgba(242, 230, 201, 0.55); font-family: var(--font-sans); font-weight: 500; }
 .layout-map-slot.is-taken rect { fill: rgba(246, 215, 126, 0.55); }
 .layout-map-slot.is-current rect { fill: var(--gold-300); }
 .layout-map-slot.is-current text,
@@ -902,6 +1034,10 @@ h1, h2, h3, p { margin: 0; }
 }
 .seg {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: 0;
   min-height: 48px;
   border-radius: 999px;
@@ -1008,7 +1144,7 @@ h1, h2, h3, p { margin: 0; }
 .permission-help h2,
 .permission-body,
 .permission-icon { text-align: center; }
-.permission-icon { font-size: 3rem; }
+.permission-icon { color: var(--gold-300); }
 .permission-body { color: var(--text-dim); }
 .guide {
   background: rgba(6, 11, 38, 0.55);
@@ -1032,12 +1168,13 @@ h1, h2, h3, p { margin: 0; }
 
 @media (max-height: 560px) and (orientation: landscape) {
   .btn-hero { min-height: 64px; }
-  .home-castle { width: 40%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .btn-hero, .ticket-btn, .home-trail, .home-windows, .magic-loader p, .magic-orb::after { animation: none; }
+  .star, .btn-hero, .magic-loader p, .magic-orb::after { animation: none; }
   .screen { animation: none; }
+  .btn, .nav-btn, .ticket-btn, .ticket-stub { transition: none; }
+  .ticket-btn:hover, .nav-btn:hover { transform: none !important; }
 }
 
 /* ---------- Print: composed photo on 4x6 in portrait ---------- */

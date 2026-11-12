@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Outputs } from '../types';
 import { canShareFiles, downloadBlob, shareFiles } from '../lib/download';
 import { printPhoto } from '../lib/print';
+import { CheckIcon, DownloadIcon, PrinterIcon, ShareIcon } from '../components/icons';
 
 interface Props {
   outputs: Outputs;
@@ -30,7 +31,7 @@ export function DownloadScreen({ outputs, onDone }: Props) {
               mark('jpg');
             }}
           >
-            ⬇ ดาวน์โหลด JPG {saved.jpg && '✓'}
+            <DownloadIcon /> ดาวน์โหลด JPG {saved.jpg && <CheckIcon />}
           </button>
           <button
             type="button"
@@ -40,7 +41,7 @@ export function DownloadScreen({ outputs, onDone }: Props) {
               mark('gif');
             }}
           >
-            ⬇ ดาวน์โหลด GIF {saved.gif && '✓'}
+            <DownloadIcon /> ดาวน์โหลด GIF {saved.gif && <CheckIcon />}
           </button>
           <button
             type="button"
@@ -50,7 +51,7 @@ export function DownloadScreen({ outputs, onDone }: Props) {
               mark('print');
             }}
           >
-            🖨 พิมพ์รูป 4×6 นิ้ว {saved.print && '✓'}
+            <PrinterIcon /> พิมพ์รูป 4×6 นิ้ว {saved.print && <CheckIcon />}
           </button>
           {shareable && (
             <button
@@ -64,7 +65,7 @@ export function DownloadScreen({ outputs, onDone }: Props) {
                 if (ok) mark('share');
               }}
             >
-              🖼 บันทึกลงรูปภาพ / แชร์ {saved.share && '✓'}
+              <ShareIcon /> บันทึกลงรูปภาพ / แชร์ {saved.share && <CheckIcon />}
             </button>
           )}
           <p className="hint">

@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { IDLE_TIMEOUT_MS, MAGIC_SCENE_DEFAULT_ON, MIRROR_OUTPUT } from './config/app';
 import { FRAMES, loadFrameCatalog, type FrameConfig, type FrameGroup } from './config/frames';
 import { FullscreenButton } from './components/FullscreenButton';
+import { MotionToggle } from './components/MotionToggle';
 import { SoundToggle } from './components/SoundToggle';
 import { StarField } from './components/StarField';
 import { useCamera } from './hooks/useCamera';
 import { useIdleTimer } from './hooks/useIdleTimer';
 import { useWakeLock } from './hooks/useWakeLock';
+import { loadSettings, saveSettings } from './lib/boothSettings';
 import { releaseCanvas } from './lib/canvas';
 import { loadFrameAssets } from './lib/compose';
 import { makeBaseFilename } from './lib/filename';
@@ -60,6 +62,12 @@ export default function App() {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [look, setLook] = useState<Look>(DEFAULT_LOOK);
   const [rendering, setRendering] = useState(false);
+  // Landing background motion (staff can pause it; remembered per machine).
+  const [motionPaused, setMotionPaused] = useState(() => loadSettings().motionPaused);
+  const changeMotion = useCallback((paused: boolean) => {
+    setMotionPaused(paused);
+    saveSettings({ motionPaused: paused });
+  }, []);
   const genId = useRef(0);
   const renderId = useRef(0);
   const baseName = useRef('');
@@ -242,12 +250,13 @@ export default function App() {
   return (
     <div className="app">
       <StarField />
-      <div className="top-actions">
+      <nav className="top-actions" aria-label="ตัวควบคุม">
         <SoundToggle />
+        {screen === 'home' && <MotionToggle paused={motionPaused} onChange={changeMotion} />}
         <FullscreenButton />
-      </div>
+      </nav>
 
-      {screen === 'home' && <HomeScreen onStart={() => setScreen('frames')} />}
+      {screen === 'home' && <HomeScreen motionPaused={motionPaused} onStart={() => setScreen('frames')} />}
 
       {screen === 'frames' && (
         <FrameSelectScreen

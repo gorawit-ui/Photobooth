@@ -1,5 +1,6 @@
 import type { CameraErrorKind } from '../lib/camera';
 import { detectBrowser, isIPad, isStandalone, type BrowserKind } from '../lib/device';
+import { CameraIcon } from './icons';
 
 type GuideKey = 'chrome' | 'edge' | 'safari-mac' | 'ipad';
 
@@ -97,7 +98,9 @@ export function PermissionHelp({ kind, onRetry, onBack }: Props) {
 
   return (
     <div className="permission-help panel scrollable">
-      <div className="permission-icon" aria-hidden="true">📷</div>
+      <div className="permission-icon" aria-hidden="true">
+        <CameraIcon width="48" height="48" />
+      </div>
       <h2>{msg.title}</h2>
       <p className="permission-body">{msg.body}</p>
 

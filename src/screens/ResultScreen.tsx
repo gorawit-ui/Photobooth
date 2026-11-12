@@ -2,6 +2,7 @@ import { MagicLoader } from '../components/MagicLoader';
 import { FILTERS } from '../lib/filters';
 import type { Look } from '../lib/look';
 import type { Outputs } from '../types';
+import { CheckIcon, ImageIcon, SparkleIcon } from '../components/icons';
 
 interface Props {
   outputs: Outputs | null;
@@ -83,7 +84,7 @@ export function ResultScreen({
                   className={look.scene ? 'seg is-on' : 'seg'}
                   onClick={() => onLookChange({ ...look, scene: true })}
                 >
-                  🏰 ฉากเวทมนตร์
+                  <SparkleIcon /> ฉากเวทมนตร์
                 </button>
                 <button
                   type="button"
@@ -92,7 +93,7 @@ export function ResultScreen({
                   className={!look.scene ? 'seg is-on' : 'seg'}
                   onClick={() => onLookChange({ ...look, scene: false })}
                 >
-                  📷 ฉากจริง
+                  <ImageIcon /> ฉากจริง
                 </button>
               </div>
             </section>
@@ -120,7 +121,7 @@ export function ResultScreen({
               ↺ ถ่ายใหม่
             </button>
             <button type="button" className="btn btn-gold btn-large" onClick={onConfirm} disabled={rendering}>
-              ยืนยัน ✓
+              ยืนยัน <CheckIcon />
             </button>
           </div>
         </aside>

@@ -118,7 +118,7 @@ function drawPlaceholder(ctx: CanvasRenderingContext2D, slot: Slot, index: numbe
   ctx.ellipse(cx, cy + u * 1.9, u * 1.8, u * 1.2, 0, Math.PI, 0);
   ctx.fill();
   ctx.fillStyle = 'rgba(255, 241, 200, 0.85)';
-  ctx.font = `600 ${Math.round(u * 0.9)}px Mitr, system-ui, sans-serif`;
+  ctx.font = `600 ${Math.round(u * 0.9)}px "IBM Plex Sans Thai", system-ui, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(String(index + 1), slot.x + u * 0.5, slot.y + u * 0.4);
@@ -193,7 +193,7 @@ export function drawFallbackBackground(ctx: CanvasRenderingContext2D, slots: Slo
   ctx.textBaseline = 'middle';
   ctx.font = '700 84px "Cinzel Decorative", Georgia, serif';
   ctx.fillText('Magical Night', W / 2, 1530);
-  ctx.font = '500 40px Mitr, system-ui, sans-serif';
+  ctx.font = '500 40px "IBM Plex Sans Thai", system-ui, sans-serif';
   ctx.fillStyle = 'rgba(255, 236, 180, 0.85)';
   ctx.fillText('✦  ค่ำคืนแห่งเวทมนตร์  ✦', W / 2, 1625);
 }
