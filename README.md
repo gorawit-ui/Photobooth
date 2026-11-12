@@ -119,6 +119,37 @@ iPad (Safari) อนุญาตให้ใช้กล้องเฉพาะ
 
 ---
 
+## 3.5 Deploy ขึ้นเว็บจริง (Vercel → Google Cloud)
+
+แอปนี้เป็น**เว็บ static ล้วน** (ไฟล์ใน `dist/` หลัง `npm run build`) ไม่มี server และรูปทั้งหมดประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้ จะ deploy ที่ไหนก็ได้ที่เสิร์ฟไฟล์ static ผ่าน HTTPS ได้
+
+> ข้อดีของการขึ้นเว็บจริง: ได้ HTTPS ที่ถูกต้อง **iPad เปิดได้ทันทีโดยไม่ขึ้นคำเตือนใบรับรอง** และไม่ต้องเปิดคอมรัน `npm run dev`
+
+### Vercel (สำหรับทดสอบ)
+ตั้งค่าไว้แล้วใน `vercel.json` (Vite, `npm run build`, โฟลเดอร์ `dist`, cache และ header อนุญาตกล้อง) และระบุ Node ≥ 20.19 ไว้ใน `package.json`
+
+1. เข้า https://vercel.com แล้วล็อกอินด้วยบัญชี GitHub
+2. **Add New… → Project** → เลือก repo `gorawit-ui/photobooth` (ถ้าไม่เห็น ให้กด *Adjust GitHub App Permissions* แล้วอนุญาต repo นี้)
+3. หน้า Configure ไม่ต้องแก้อะไร (Framework = Vite, Build = `npm run build`, Output = `dist`) → **Deploy**
+4. ได้ลิงก์ `https://<ชื่อโปรเจกต์>.vercel.app` เปิดบนคอม/iPad ได้เลย
+5. ทุกครั้งที่ push ขึ้น GitHub, Vercel จะ deploy ใหม่ให้อัตโนมัติ
+
+ข้อควรรู้
+- ลิงก์ Vercel **เป็นสาธารณะ** ใครมีลิงก์ก็เปิดได้ (แต่ไม่มีรูปของใครถูกส่งขึ้น server) ถ้าไม่อยากให้คนนอกเปิด ใช้ *Settings → Deployment Protection* ของ Vercel
+- โมเดล AI 16 MB และ WASM ~12 MB โหลดครั้งแรกครั้งเดียว ครั้งต่อไปเบราว์เซอร์ cache ไว้ (เปิดเว็บก่อนเริ่มงานสัก 1 รอบ)
+- ฟอนต์ไทยโหลดจาก Google Fonts ต้องมีอินเทอร์เน็ตตอนเปิดเว็บครั้งแรก
+
+### Google Cloud ของบริษัท (ภายหลัง)
+เพราะเป็นไฟล์ static ย้ายได้ง่าย เลือกได้ 3 แบบ (แนะนำแบบแรก):
+
+| ทางเลือก | เหมาะกับ | หมายเหตุ |
+| --- | --- | --- |
+| **Firebase Hosting** (อยู่ใน Google Cloud project เดียวกัน) | ง่ายสุด, HTTPS + CDN ฟรี, ผูกโดเมนบริษัทได้ | ถ้าเฟส QR ใช้ Firebase Storage จะอยู่ project เดียวกันพอดี |
+| **Cloud Run** (container nginx เสิร์ฟ `dist/`) | บริษัทที่ใช้ Cloud Run อยู่แล้ว / ต้องการคุม IAM, ingress | ต้องมี Dockerfile (เตรียมให้ได้) |
+| **Cloud Storage + HTTPS Load Balancer + Cloud CDN** | เว็บ static ปริมาณสูง | ตั้งค่าเยอะกว่า และต้องมีโดเมน + ใบรับรองผ่าน Load Balancer |
+
+ทุกแบบต้อง**เสิร์ฟที่ root ของโดเมน** (เช่น `https://booth.company.com/`) เพราะแอปอ้างไฟล์แบบ `/frames/...`, `/models/...` และต้องเป็น **HTTPS** (กล้องใช้ไม่ได้บน HTTP) ให้ตั้ง cache และ header ตาม `vercel.json` ด้วย
+
 ## 4. ตั้งค่า Guided Access บน iPad (ล็อกให้อยู่ในแอปเดียว)
 
 Guided Access ป้องกันไม่ให้แขกกดออกจากแอป ปัดไปหน้าโฮม หรือเปิดแอปอื่น
