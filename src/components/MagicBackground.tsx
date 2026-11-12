@@ -43,6 +43,7 @@ export function MagicBackground({ paused }: { paused: boolean }) {
         <source media="(max-width: 700px), (orientation: portrait)" srcSet={`${ASSET_BASE}/enchanted-station-mobile.webp`} />
         <img src={`${ASSET_BASE}/enchanted-station-desktop.webp`} alt="" draggable={false} />
       </picture>
+      <canvas className="tdfb-bg__smoke" />
       <div className="tdfb-bg__glow" />
       <div className="tdfb-bg__mist tdfb-bg__mist--far" />
       <div className="tdfb-bg__mist" />

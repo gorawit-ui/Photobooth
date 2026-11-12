@@ -6,6 +6,7 @@
 .tdfb-bg__glow{position:absolute;width:29vw;height:34vh;right:8%;top:12%;background:radial-gradient(ellipse,rgba(255,210,126,.13),transparent 70%);mix-blend-mode:screen;animation:tdfb-glow 7s ease-in-out infinite alternate}
 .tdfb-bg__mist{position:absolute;left:-30%;width:160%;height:28%;bottom:4%;opacity:.16;background:radial-gradient(ellipse at 20% 60%,rgba(201,217,238,.65),transparent 36%),radial-gradient(ellipse at 60% 45%,rgba(205,222,242,.5),transparent 38%),radial-gradient(ellipse at 90% 70%,rgba(195,214,239,.4),transparent 40%);filter:blur(18px);animation:tdfb-mist 42s ease-in-out infinite alternate;will-change:transform}
 .tdfb-bg__mist--far{bottom:22%;height:18%;opacity:.12;animation-duration:60s;animation-direction:alternate-reverse;filter:blur(25px)}
+.tdfb-bg__smoke{position:absolute;inset:0;width:100%;height:100%}
 .tdfb-bg__particles{position:absolute;inset:0;width:100%;height:100%;opacity:var(--motion-opacity)}
 .tdfb-bg__trail{position:absolute;inset:0;width:100%;height:100%;opacity:.48;overflow:visible}
 .tdfb-bg__trail .base{fill:none;stroke:url(#tdfb-ribbon);stroke-width:1.2;opacity:.35}
@@ -21,3 +22,5 @@
 @keyframes tdfb-flicker{0%{scale:.9 1;opacity:.85}48%{scale:1.1 .9;opacity:1}100%{scale:.9 1.15;opacity:.75}}
 @media(max-width:700px),(orientation:portrait){.tdfb-bg__art img{object-position:50% 64%}.tdfb-bg__veil{background:linear-gradient(180deg,rgba(12,27,49,.66),rgba(17,34,58,.56) 33%,rgba(21,39,66,.07) 65%,rgba(10,25,43,.15))}.tdfb-bg__candle{display:none}.tdfb-bg__glow{width:66vw;height:28vh;top:57%;right:0}.tdfb-bg__mist{bottom:10%;height:19%;opacity:.12}.tdfb-bg__mist--far{bottom:26%;opacity:.08}.tdfb-bg__trail{opacity:.25}}
 @media(prefers-reduced-motion:reduce){.tdfb-bg *{animation:none!important;transition:none!important}.tdfb-bg__art{transform:none!important}.tdfb-bg__particles{opacity:0}}
+
+@media(prefers-reduced-motion:reduce){.tdfb-bg__smoke{display:none}}

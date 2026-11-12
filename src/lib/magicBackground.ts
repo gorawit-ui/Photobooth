@@ -4,9 +4,12 @@
  *   - gold particles on a canvas, 30 fps cap, DPR capped at 1.5,
  *     58 particles on desktop / 22 below 700 px, dimmed over the text area
  *   - gentle pointer parallax (±4 px / ±2.5 px) on fine-pointer desktops
+ *   - smoke rising from the locomotive's chimney (see smoke.ts)
  *   - pauses when the tab is hidden; OS "reduce motion" always wins
  * CSS animations (mist, candles, ribbon) pause via root[data-motion].
  */
+
+import { SmokeLayer } from './smoke';
 
 export interface MotionController {
   setPaused: (paused: boolean) => boolean;
@@ -26,9 +29,12 @@ interface Particle {
 const NOOP: MotionController = { setPaused: () => true, isPaused: () => true, destroy: () => {} };
 
 export function initMagicBackground(root: HTMLElement, options: { paused?: boolean } = {}): MotionController {
-  const canvas = root.querySelector('canvas');
+  const canvas = root.querySelector<HTMLCanvasElement>('canvas.tdfb-bg__particles');
   const ctx = canvas?.getContext('2d');
   if (!canvas || !ctx) return NOOP;
+  const smokeCanvas = root.querySelector<HTMLCanvasElement>('canvas.tdfb-bg__smoke');
+  const art = root.querySelector('img');
+  const smoke = smokeCanvas && art ? new SmokeLayer(smokeCanvas, art) : null;
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(pointer: fine)');
@@ -49,6 +55,7 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
   };
 
   function draw(t: number, dt: number) {
+    smoke?.step(dt);
     ctx!.clearRect(0, 0, w, h);
     for (const p of particles) {
       p.y -= (p.speed * dt) / Math.max(h, 1);
@@ -77,6 +84,7 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
     canvas!.width = Math.round(w * ratio);
     canvas!.height = Math.round(h * ratio);
     ctx!.setTransform(ratio, 0, 0, ratio, 0, 0);
+    smoke?.resize(w, h, ratio);
     seed = 240612;
     particles = [];
     const count = narrow() ? 22 : 58;
@@ -90,8 +98,17 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
         drift: 2 + random() * 12,
       });
     }
-    if (reduce.matches) ctx!.clearRect(0, 0, w, h);
-    else draw(performance.now(), 0);
+    if (reduce.matches) {
+      ctx!.clearRect(0, 0, w, h);
+      smoke?.clear();
+    } else draw(performance.now(), 0);
+  }
+
+  // Start with a plume already rising instead of an empty chimney.
+  function warmSmoke() {
+    if (!smoke || reduce.matches) return;
+    smoke.warmUp(4);
+    draw(performance.now(), 0);
   }
 
   function loop(t: number) {
@@ -113,7 +130,10 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
     last = 0;
     if (paused) resetParallax();
     if (!paused && !document.hidden && !disposed) raf = requestAnimationFrame(loop);
-    else if (reduce.matches) ctx!.clearRect(0, 0, w, h);
+    else if (reduce.matches) {
+      ctx!.clearRect(0, 0, w, h);
+      smoke?.clear();
+    }
   }
 
   const onVisibility = () => {
@@ -135,6 +155,8 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
     root.style.setProperty('--py', '0px');
   }
 
+  if (art?.complete) warmSmoke();
+  art?.addEventListener('load', warmSmoke);
   const observer = new ResizeObserver(resize);
   observer.observe(root);
   document.addEventListener('visibilitychange', onVisibility);
@@ -156,6 +178,7 @@ export function initMagicBackground(root: HTMLElement, options: { paused?: boole
       disposed = true;
       if (raf) cancelAnimationFrame(raf);
       observer.disconnect();
+      art?.removeEventListener('load', warmSmoke);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('blur', resetParallax);
