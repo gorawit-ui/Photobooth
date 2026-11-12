@@ -1,0 +1,46 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-12T10:00:00Z" },
+  "title": "The Order of Unity — Photobooth",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1366, "h": 768, "title": "หน้าแรก", "expand": "fill" },
+    "FrameSelect.dc.html": { "x": 1446, "y": 0, "w": 1366, "h": 768, "title": "เลือกกรอบ", "expand": "fill" },
+    "Capture.dc.html": { "x": 2892, "y": 0, "w": 1366, "h": 768, "title": "ถ่ายรูป · นับถอยหลัง", "expand": "fill" },
+    "Result.dc.html": { "x": 4338, "y": 0, "w": 1366, "h": 768, "title": "ผลลัพธ์ · ฉากและฟิลเตอร์", "expand": "fill" },
+    "FrameGreatHall.dc.html": { "x": 0, "y": 1240, "w": 1024, "h": 1536, "title": "กรอบ 1 · The Great Hall" },
+    "FrameNightExpress.dc.html": { "x": 1104, "y": 1240, "w": 1024, "h": 1536, "title": "กรอบ 2 · The Night Express" },
+    "FrameOwlPost.dc.html": { "x": 2208, "y": 1240, "w": 1024, "h": 1536, "title": "กรอบ 3 · The Owl Post" }
+  },
+  "order": [
+    "Main.dc.html",
+    "FrameSelect.dc.html",
+    "Capture.dc.html",
+    "Result.dc.html",
+    "FrameGreatHall.dc.html",
+    "FrameNightExpress.dc.html",
+    "FrameOwlPost.dc.html"
+  ],
+  "notes": {
+    "rowScreens": { "x": 0, "y": -300, "text": "หน้าจอบูธ · คอม / iPad แนวนอน", "kind": "title1", "maxW": 5704 },
+    "rowFrames": { "x": 0, "y": 940, "text": "กรอบพิมพ์ 4×6 · 1024×1536 (ช่องรูปตาม templates.json)", "kind": "title1", "maxW": 3232 },
+    "system": {
+      "x": 3312,
+      "y": 1240,
+      "w": 460,
+      "fill": "blue",
+      "size": "m",
+      "text": "ระบบดีไซน์ · The Order of Unity\n\nสี: น้ำเงินกลางคืน #0B1433 · ทองโบราณ #D4A64A · แดงเลือดหมู #7A1E2B · กระดาษ #F2E6C9\n\nตัวอักษร: Cinzel Decorative (หัวเรื่อง) · Cinzel (ป้ายเล็ก) · Chonburi (หัวเรื่องไทย) · Mitr (เนื้อหา)\n\nองค์ประกอบ: กรอบทองบาโรก · หน้าต่างรถไฟ · ตั๋ว · จดหมายนกฮูก · ตราครั่ง · เส้นประกายทอง\n\nไม่ใช้ชื่อหรือสัญลักษณ์ของแบรนด์ภาพยนตร์ (Hogwarts, ตราบ้าน, 9¾) — ใช้ชื่องานของ TDFB แทน"
+    },
+    "slots": {
+      "x": 3312,
+      "y": 1900,
+      "w": 460,
+      "fill": "orange",
+      "size": "m",
+      "text": "ช่องรูปทั้ง 3 กรอบ = ตำแหน่งเดียวกับ templates.json (84,94 / 568,94 / 84,663 / 568,663 · 372×454)\n\nปิด Tweak “ช่องรูปตัวอย่าง” ของแต่ละกรอบ จะได้ช่องว่างสีพื้นสำหรับส่งออกเป็น PNG ใช้กับแอป"
+    }
+  },
+  "designSystems": []
+}

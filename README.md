@@ -8,6 +8,13 @@
 - สร้าง GIF บนเครื่องด้วย [gifenc](https://github.com/mattdesl/gifenc)
 - รองรับ Google Chrome, Microsoft Edge, Safari (macOS และ iPad)
 
+
+## เอกสารเพิ่มเติม
+- [`docs/roadmap.md`](docs/roadmap.md): สิ่งที่ทำเสร็จแล้ว และแผนถัดไป
+- [`docs/design/`](docs/design/README.md): ธีม "The Order of Unity" ระบบดีไซน์ ม็อกจาก Claude Design และ prompt สำหรับ ChatGPT
+- [`docs/competitor-analysis.md`](docs/competitor-analysis.md): เทียบกับ My Name is PhotoBooth
+- [`docs/magical-booth-tech-stack.pdf`](docs/magical-booth-tech-stack.pdf): สรุป Tech Stack
+
 ---
 
 ## 1. วิธีรัน
