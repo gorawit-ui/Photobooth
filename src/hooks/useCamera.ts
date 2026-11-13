@@ -8,6 +8,7 @@ import {
   type CameraErrorKind,
 } from '../lib/camera';
 import { loadSettings, saveSettings } from '../lib/boothSettings';
+import { openTetherPreview, TETHER_DEVICE, TETHER_DEVICE_ID } from '../lib/tether';
 
 export interface CameraState {
   stream: MediaStream | null;
@@ -20,8 +21,11 @@ export interface CameraState {
   retry: () => void;
 }
 
-/** Keeps a camera stream open while `active` is true. */
-export function useCamera(active: boolean): CameraState {
+/**
+ * Keeps a camera stream open while `active` is true. With `tetherUrl` the
+ * Sony Bridge's live view is offered as one more camera.
+ */
+export function useCamera(active: boolean, tetherUrl?: string | null): CameraState {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraState['status']>('idle');
   const [error, setError] = useState<CameraErrorKind | null>(null);
@@ -40,7 +44,10 @@ export function useCamera(active: boolean): CameraState {
     setStatus('starting');
     setError(null);
 
-    openCamera(chosenId)
+    // The bridge's live view only while the bridge is up; otherwise the default camera.
+    const useBridge = chosenId === TETHER_DEVICE_ID;
+    const open = useBridge ? (tetherUrl ? openTetherPreview(tetherUrl) : openCamera()) : openCamera(chosenId);
+    open
       .then(async (s) => {
         if (cancelled) {
           stopStream(s);
@@ -65,7 +72,7 @@ export function useCamera(active: boolean): CameraState {
       stopStream(current);
       setStream(null);
     };
-  }, [active, chosenId, attempt]);
+  }, [active, chosenId, attempt, chosenId === TETHER_DEVICE_ID ? tetherUrl : null]);
 
   // Cameras plugged in / removed while running.
   useEffect(() => {
@@ -82,12 +89,13 @@ export function useCamera(active: boolean): CameraState {
   }, []);
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
+  const usingBridge = chosenId === TETHER_DEVICE_ID && !!tetherUrl;
   return {
     stream,
     status,
     error,
-    devices,
-    deviceId: activeDeviceId(stream) ?? chosenId,
+    devices: tetherUrl ? [...devices, TETHER_DEVICE] : devices,
+    deviceId: usingBridge ? TETHER_DEVICE_ID : (activeDeviceId(stream) ?? chosenId),
     selectDevice,
     retry,
   };

@@ -18,6 +18,7 @@ import { MagicSparkles } from '../components/MagicSparkles';
 import { MagicLoader } from '../components/MagicLoader';
 import { PermissionHelp } from '../components/PermissionHelp';
 import type { CameraState } from '../hooks/useCamera';
+import type { TetherState } from '../hooks/useTether';
 import { useFitSize } from '../hooks/useFitSize';
 import { useSpacebar } from '../hooks/useSpacebar';
 import { loadSettings, saveSettings } from '../lib/boothSettings';
@@ -33,6 +34,7 @@ import {
 } from '../lib/cameraControls';
 import { canvasToBlob, releaseCanvas } from '../lib/canvas';
 import { isMobileDevice, isTouchDevice } from '../lib/device';
+import { tetherCapture } from '../lib/tether';
 import { sound } from '../lib/sound';
 import type { Shot } from '../types';
 import { CameraIcon, ChevronLeftIcon, FlipIcon } from '../components/icons';
@@ -40,6 +42,8 @@ import { CameraIcon, ChevronLeftIcon, FlipIcon } from '../components/icons';
 interface Props {
   frame: FrameConfig;
   camera: CameraState;
+  /** Sony Bridge (gphoto2 on Mac): when ready, shots are the real camera's photos. */
+  tether: TetherState;
   /** Called right after each shot is taken (index 0 = a new run). */
   onShot?: (shot: Shot, index: number) => void;
   onComplete: (shots: Shot[]) => void;
@@ -59,7 +63,7 @@ function disposeShots(shots: Shot[]) {
   });
 }
 
-export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBusyChange }: Props) {
+export function CaptureScreen({ frame, camera, tether, onShot, onComplete, onBack, onBusyChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const aliveRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('ready');
@@ -71,11 +75,13 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
   const [mirrorPreview, setMirrorPreview] = useState(() => loadSettings().mirrorPreview);
   const [features, setFeatures] = useState<CameraFeatures>(NO_FEATURES);
   const [showInfo, setShowInfo] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const [tetherError, setTetherError] = useState<string | null>(null);
   const [focusMark, setFocusMark] = useState<{ x: number; y: number; key: number } | null>(null);
   const track = videoTrack(camera.stream);
   const mode = track?.getSettings();
   // Staff hint: the camera itself only sends a small picture.
-  const lowRes = !!mode?.height && Math.min(mode.width ?? 0, mode.height) < LOW_RES_HEIGHT;
+  const lowRes = !tether.shootsStills && !!mode?.height && Math.min(mode.width ?? 0, mode.height) < LOW_RES_HEIGHT;
 
   // What this camera can do (zoom, brightness, torch, full-res stills...).
   useEffect(() => {
@@ -152,15 +158,34 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
         const video = videoRef.current;
         if (!video) throw new Error('no video');
         await waitForVideo(video);
-        sound.shutter();
-        setFlashKey((k) => k + 1);
-        // Phones: a real full-resolution photo (the white flash doubles as a
-        // screen flash for the front camera). Computers: the video frame.
-        const liveTrack = videoTrack(camera.stream);
-        const still =
-          USE_STILL_PHOTO && isMobileDevice && features.still && liveTrack
-            ? await takeStill(liveTrack, features.still, video.videoWidth / video.videoHeight, MAX_CAPTURE_HEIGHT)
-            : null;
+        let still: HTMLCanvasElement | null = null;
+        if (tether.shootsStills) {
+          // Real shutter over USB (Mac + gphoto2): the camera needs ~1–3 s to
+          // shoot and send the file, so guests hold the pose; flash when it lands.
+          setHolding(true);
+          try {
+            still = await tetherCapture(tether.url, MAX_CAPTURE_HEIGHT);
+            setTetherError(null);
+          } catch (err) {
+            console.warn('Sony Bridge shot failed, using the live picture', err);
+            setTetherError(err instanceof Error ? err.message : String(err));
+          } finally {
+            setHolding(false);
+          }
+          if (!aliveRef.current) throw new Error('aborted');
+          sound.shutter();
+          setFlashKey((k) => k + 1);
+        } else {
+          sound.shutter();
+          setFlashKey((k) => k + 1);
+          // Phones: a real full-resolution photo (the white flash doubles as a
+          // screen flash for the front camera). Computers: the video frame.
+          const liveTrack = videoTrack(camera.stream);
+          still =
+            USE_STILL_PHOTO && isMobileDevice && features.still && liveTrack
+              ? await takeStill(liveTrack, features.still, video.videoWidth / video.videoHeight, MAX_CAPTURE_HEIGHT)
+              : null;
+        }
         const canvas = still ?? captureFrame(video);
         const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
         const shot: Shot = { canvas, blob, url: URL.createObjectURL(blob) };
@@ -184,7 +209,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
       setPhase('ready');
       setFailed(true);
     }
-  }, [phase, camera.status, camera.stream, features.still, onBusyChange, onShot, onComplete]);
+  }, [phase, camera.status, camera.stream, features.still, tether.shootsStills, tether.url, onBusyChange, onShot, onComplete]);
 
   useSpacebar(start, phase === 'ready' && camera.status === 'ready');
 
@@ -234,6 +259,11 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
               ช็อต {Math.min(shotIndex + 1, SHOT_COUNT)}/{SHOT_COUNT}
             </div>
           )}
+          {holding && (
+            <div className="hold-still" aria-live="assertive">
+              ค้างท่าไว้…
+            </div>
+          )}
           {count !== null && (
             <div className="countdown" key={`${shotIndex}-${count}`} aria-live="assertive">
               {count}
@@ -276,6 +306,7 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
             </button>
             {!isTouchDevice && <p className="hint">หรือกด Spacebar</p>}
             <CameraControls track={track} features={features} />
+            {tether.enabled && <TetherBadge tether={tether} error={tetherError} />}
             {lowRes && (
               <p className="low-res-note" role="status">
                 กล้องนี้ส่งภาพแค่ {mode?.width}×{mode?.height} รูปจะไม่คม
@@ -327,9 +358,31 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
 
       {flashKey > 0 && <div className="flash" key={flashKey} aria-hidden="true" />}
       {showInfo && (
-        <CameraInfo stream={camera.stream} devices={camera.devices} onClose={() => setShowInfo(false)} />
+        <CameraInfo stream={camera.stream} devices={camera.devices} tether={tether} onClose={() => setShowInfo(false)} />
       )}
     </main>
   );
 }
 
+const TETHER_TEXT: Record<TetherState['state'], string> = {
+  off: '',
+  checking: 'กำลังหาโปรแกรม Sony Bridge…',
+  missing: 'ไม่พบ Sony Bridge ใช้ภาพจากกล้องปกติแทน',
+  nocamera: 'Sony Bridge ไม่เห็นกล้อง ใช้ภาพจากกล้องปกติแทน',
+  ready: 'ถ่ายด้วยชัตเตอร์กล้องจริง (gphoto2)',
+};
+
+/** Staff-facing state of the Sony Bridge. */
+function TetherBadge({ tether, error }: { tether: TetherState; error: string | null }) {
+  const ok = tether.state === 'ready' && !error;
+  return (
+    <p className={ok ? 'tether-badge is-ok' : 'tether-badge'} role="status">
+      <span className="tether-dot" aria-hidden="true" />
+      <span>
+        {error ? 'ช็อตล่าสุดดึงรูปจากกล้องไม่สำเร็จ ใช้ภาพสดแทน' : TETHER_TEXT[tether.state]}
+        {tether.state === 'ready' && tether.status?.camera && <small>{tether.status.camera}</small>}
+        {error && <small>{error}</small>}
+      </span>
+    </p>
+  );
+}

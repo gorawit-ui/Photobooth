@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "bridge": "node tether/sony-bridge.mjs",
+    "bridge:mock": "node tether/sony-bridge.mjs --backend mock"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
