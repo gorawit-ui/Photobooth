@@ -22,8 +22,18 @@ export const IDLE_TIMEOUT_MS = 60_000;
 export const OUTPUT_WIDTH = 1200;
 export const OUTPUT_HEIGHT = 1800;
 
+/**
+ * Long side of the final JPG (px). Frames are designed at 1024×1536, which
+ * left each photo only ~370 px wide — fine on screen, soft when printed or
+ * zoomed. Exporting at 2× (2048×3072, ≈ 4×6 in at 500 dpi) keeps the photos
+ * at the camera's real detail. Frame art drawn larger than its file is
+ * upscaled; drop in 2048×3072 frame files (same names, same JSON) for crisp
+ * frame text too.
+ */
+export const EXPORT_LONG_SIDE = 3072;
+
 /** JPG export quality (0–1). */
-export const JPG_QUALITY = 0.92;
+export const JPG_QUALITY = 0.93;
 
 /**
  * GIF settings. The GIF contains only the 4 photos (no frame). Height follows
@@ -46,8 +56,9 @@ export const CAMERA_IDEAL_HEIGHT = 1080;
 export const MOBILE_CAMERA_IDEAL_WIDTH = 3840;
 export const MOBILE_CAMERA_IDEAL_HEIGHT = 2160;
 
-/** Captured shots are scaled to at most this height (memory on phones; photos use ≤1080). */
-export const MAX_CAPTURE_HEIGHT = 1440;
+/** Captured shots are scaled to at most this height (memory on phones). The
+ *  tallest slot at export size is ~2040 px, so 2160 keeps every detail. */
+export const MAX_CAPTURE_HEIGHT = 2160;
 
 /** Use the camera's full-resolution still photo (phones) instead of a video frame when available. */
 export const USE_STILL_PHOTO = true;

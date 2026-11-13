@@ -6,8 +6,8 @@
  * changes the scene toggle or filter on the result screen.
  */
 
-import { AUTO_BRIGHTEN, CROP_FOCAL_Y, JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
-import type { FrameConfig } from '../config/frames';
+import { AUTO_BRIGHTEN, CROP_FOCAL_Y, EXPORT_LONG_SIDE, JPG_QUALITY, MAGIC_SCENE_IMAGE, MIN_PERSON_COVERAGE } from '../config/app';
+import { frameSize, type FrameConfig } from '../config/frames';
 import { applyCurve, exposureCurve } from './autoExposure';
 import { canvasToBlob, createCanvas, get2d, releaseCanvas } from './canvas';
 import { composeFrame, type Drawable, type FrameAssets } from './compose';
@@ -45,15 +45,22 @@ function sizeOf(src: Drawable) {
     : { w: src.width, h: src.height };
 }
 
-/** Crop to `aspect` at source resolution (max 1080 px tall), optionally mirrored.
+/** Final JPG size for a frame: its own pixel space scaled to EXPORT_LONG_SIDE. */
+export function exportSize(frame: FrameConfig): { width: number; height: number; scale: number } {
+  const { width, height } = frameSize(frame);
+  const scale = Math.max(1, EXPORT_LONG_SIDE / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale), scale };
+}
+
+/** Crop to `aspect` at source resolution (at most `maxHeight` px tall), optionally mirrored.
  *  Centred horizontally; vertically at CROP_FOCAL_Y. */
-function cropToAspect(src: Drawable, aspect: number, mirror: boolean): HTMLCanvasElement {
+function cropToAspect(src: Drawable, aspect: number, mirror: boolean, maxHeight: number): HTMLCanvasElement {
   const { w, h } = sizeOf(src);
   let cw = w;
   let ch = h;
   if (w / h > aspect) cw = h * aspect;
   else ch = w / aspect;
-  const outH = Math.round(Math.min(ch, 1080));
+  const outH = Math.round(Math.min(ch, maxHeight));
   const outW = Math.round(outH * aspect);
   const canvas = createCanvas(outW, outH);
   const ctx = get2d(canvas);
@@ -103,9 +110,11 @@ export async function prepareShot(
   aspect: number,
   gifShape: number,
   mirror: boolean,
+  maxHeight = 1080,
 ): Promise<PreparedShot> {
-  const photo = cropToAspect(src, aspect, mirror);
-  const gif = sameAspect(aspect, gifShape) ? null : cropToAspect(src, gifShape, mirror);
+  const photo = cropToAspect(src, aspect, mirror, maxHeight);
+  // The GIF is small (GIF_WIDTH wide), 1080 px is plenty.
+  const gif = sameAspect(aspect, gifShape) ? null : cropToAspect(src, gifShape, mirror, 1080);
   if (AUTO_BRIGHTEN) {
     // One curve from the slot crop, applied to both crops so JPG and GIF match.
     const curve = exposureCurve(photo);
@@ -129,7 +138,10 @@ export async function prepareShot(
 
 /** Prepare shot `index` for `frame`. */
 export function prepareShotFor(frame: FrameConfig, src: Drawable, index: number, mirror: boolean) {
-  return prepareShot(src, slotAspect(frame, index), gifAspect(frame), mirror);
+  // Keep exactly the detail the slot needs in the exported JPG — no more (phone memory).
+  const slot = frame.slots[index] ?? frame.slots[0];
+  const maxHeight = Math.ceil(slot.height * exportSize(frame).scale);
+  return prepareShot(src, slotAspect(frame, index), gifAspect(frame), mirror, maxHeight);
 }
 
 export function assemblePrepared(frame: FrameConfig, shots: PreparedShot[]): Prepared {
@@ -172,7 +184,8 @@ export async function renderOutputs(
   };
   try {
     const jpgPhotos = prepared.shots.map((s) => filtered((look.scene && s.scene) || s.photo));
-    const composed = composeFrame(frame, assets, jpgPhotos, { mirror: false });
+    const { width, height } = exportSize(frame);
+    const composed = composeFrame(frame, assets, jpgPhotos, { width, height, mirror: false });
     temp.push(composed);
     const jpg = await canvasToBlob(composed, 'image/jpeg', JPG_QUALITY);
     await nextTick();
