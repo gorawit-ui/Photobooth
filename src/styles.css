@@ -934,12 +934,14 @@ h1, h2, h3, p { margin: 0; }
 
 .capture-panel {
   width: clamp(260px, 27vw, 380px);
+  padding-top: calc(76px + var(--safe-top)); /* keep clear of the navbar */
   padding-bottom: 96px; /* keep clear of the thumbnail strip */
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: safe center; /* tall content scrolls instead of sliding under the navbar */
+  overflow-y: auto;
   gap: 16px;
   padding-left: var(--pad);
   text-align: center;
@@ -1456,4 +1458,35 @@ h1, h2, h3, p { margin: 0; }
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+}
+
+/* Staff hint when the camera itself only sends a small picture. */
+.low-res-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid rgba(240, 190, 110, 0.55);
+  background: rgba(120, 70, 20, 0.35);
+  color: #ffe2b0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+}
+.low-res-note span {
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Short landscape screens (1366×768 laptops): fit the panel above the thumbnail strip. */
+@media (orientation: landscape) and (max-height: 860px) {
+  .capture-panel { gap: 10px; padding-top: calc(68px + var(--safe-top)); padding-bottom: 88px; }
+  .capture-panel .btn-shoot { font-size: 1.6rem; padding-block: 0.45em; }
+  .capture-panel .hint { margin: -4px 0 0; }
+  .capture-panel .layout-map { width: clamp(48px, 9vmin, 72px); }
+  .panel-tools { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 0; }
+  .low-res-note { padding: 8px 10px; font-size: 13px; }
+  .low-res-note span { font-size: 12px; }
 }

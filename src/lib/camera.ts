@@ -60,7 +60,9 @@ export async function openCamera(deviceId?: string): Promise<MediaStream> {
   else video.facingMode = 'user';
 
   try {
-    return await navigator.mediaDevices.getUserMedia({ video, audio: false });
+    const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+    await useBestMode(stream);
+    return stream;
   } catch (err) {
     const name = err instanceof Error ? err.name : '';
     // Some webcams reject the constraints — retry with the simplest request.
@@ -77,6 +79,44 @@ export async function openCamera(deviceId?: string): Promise<MediaStream> {
     throw classify(err);
   }
 }
+
+/** Largest picture we ask a computer camera for (4K UHD). */
+const MAX_MODE = { width: 3840, height: 2160 };
+
+/**
+ * The browser opens the mode closest to the "ideal" request, which can leave a
+ * better camera (4K webcam, capture card, a phone's back camera) below what it
+ * can really give. Ask for the largest mode the camera advertises, keeping at
+ * least ~20 fps so the live preview stays smooth; if the camera refuses, keep
+ * the mode it opened with.
+ */
+async function useBestMode(stream: MediaStream): Promise<void> {
+  const track = stream.getVideoTracks()[0];
+  if (!track?.getCapabilities) return;
+  const caps = track.getCapabilities();
+  const s = track.getSettings();
+  const maxW = Math.min(caps.width?.max ?? 0, MAX_MODE.width);
+  const maxH = Math.min(caps.height?.max ?? 0, MAX_MODE.height);
+  if (!maxW || !maxH || (maxW * maxH <= (s.width ?? 0) * (s.height ?? 0))) return;
+  const before = { width: s.width, height: s.height, frameRate: s.frameRate };
+  try {
+    await track.applyConstraints({
+      width: { ideal: maxW },
+      height: { ideal: maxH },
+      frameRate: { ideal: 30, min: 20 },
+    });
+  } catch {
+    // Not available at a usable frame rate: go back to the original mode.
+    try {
+      await track.applyConstraints({ width: { ideal: before.width }, height: { ideal: before.height }, frameRate: { ideal: 30 } });
+    } catch {
+      /* keep whatever the camera has */
+    }
+  }
+}
+
+/** Below this the camera itself is the limit (e.g. Sony Imaging Edge Webcam ≈ 1024×576). */
+export const LOW_RES_HEIGHT = 720;
 
 export function stopStream(stream: MediaStream | null | undefined): void {
   stream?.getTracks().forEach((t) => t.stop());

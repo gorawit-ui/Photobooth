@@ -15,6 +15,7 @@ import { applyFilter, type FilterId } from './filters';
 import { createGif } from './gif';
 import { composeScene, loadSceneImage, personCoverage } from './scene';
 import { segmentPerson } from './segment';
+import { sharpen, sharpenFor } from './sharpen';
 
 export interface Look {
   /** Use the magic background (when available for a shot). */
@@ -52,24 +53,34 @@ export function exportSize(frame: FrameConfig): { width: number; height: number;
   return { width: Math.round(width * scale), height: Math.round(height * scale), scale };
 }
 
-/** Crop to `aspect` at source resolution (at most `maxHeight` px tall), optionally mirrored.
- *  Centred horizontally; vertically at CROP_FOCAL_Y. */
-function cropToAspect(src: Drawable, aspect: number, mirror: boolean, maxHeight: number): HTMLCanvasElement {
+/** Crop to `aspect`, optionally mirrored. Centred horizontally; vertically at CROP_FOCAL_Y.
+ *  Output is `targetHeight` px tall: downscaled from bigger sources; with
+ *  `enlarge`, smaller sources (low-res cameras) are enlarged and lightly
+ *  sharpened so they hold up in the 2× export instead of being stretched soft. */
+function cropToAspect(
+  src: Drawable,
+  aspect: number,
+  mirror: boolean,
+  targetHeight: number,
+  enlarge = false,
+): HTMLCanvasElement {
   const { w, h } = sizeOf(src);
   let cw = w;
   let ch = h;
   if (w / h > aspect) cw = h * aspect;
   else ch = w / aspect;
-  const outH = Math.round(Math.min(ch, maxHeight));
-  const outW = Math.round(outH * aspect);
+  const outH = Math.max(1, Math.round(enlarge ? targetHeight : Math.min(ch, targetHeight)));
+  const outW = Math.max(1, Math.round(outH * aspect));
   const canvas = createCanvas(outW, outH);
   const ctx = get2d(canvas);
+  ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   if (mirror) {
     ctx.translate(outW, 0);
     ctx.scale(-1, 1);
   }
   ctx.drawImage(src, (w - cw) / 2, (h - ch) * CROP_FOCAL_Y, cw, ch, 0, 0, outW, outH);
+  if (enlarge) sharpen(canvas, sharpenFor(outH / ch));
   return canvas;
 }
 
@@ -110,9 +121,10 @@ export async function prepareShot(
   aspect: number,
   gifShape: number,
   mirror: boolean,
+  /** Slot height in the exported JPG. */
   maxHeight = 1080,
 ): Promise<PreparedShot> {
-  const photo = cropToAspect(src, aspect, mirror, maxHeight);
+  const photo = cropToAspect(src, aspect, mirror, maxHeight, true);
   // The GIF is small (GIF_WIDTH wide), 1080 px is plenty.
   const gif = sameAspect(aspect, gifShape) ? null : cropToAspect(src, gifShape, mirror, 1080);
   if (AUTO_BRIGHTEN) {

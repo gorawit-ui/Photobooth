@@ -21,7 +21,7 @@ import type { CameraState } from '../hooks/useCamera';
 import { useFitSize } from '../hooks/useFitSize';
 import { useSpacebar } from '../hooks/useSpacebar';
 import { loadSettings, saveSettings } from '../lib/boothSettings';
-import { captureFrame, waitForVideo } from '../lib/camera';
+import { captureFrame, LOW_RES_HEIGHT, waitForVideo } from '../lib/camera';
 import {
   detectFeatures,
   focusAt,
@@ -73,6 +73,9 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
   const [showInfo, setShowInfo] = useState(false);
   const [focusMark, setFocusMark] = useState<{ x: number; y: number; key: number } | null>(null);
   const track = videoTrack(camera.stream);
+  const mode = track?.getSettings();
+  // Staff hint: the camera itself only sends a small picture.
+  const lowRes = !!mode?.height && Math.min(mode.width ?? 0, mode.height) < LOW_RES_HEIGHT;
 
   // What this camera can do (zoom, brightness, torch, full-res stills...).
   useEffect(() => {
@@ -273,6 +276,12 @@ export function CaptureScreen({ frame, camera, onShot, onComplete, onBack, onBus
             </button>
             {!isTouchDevice && <p className="hint">หรือกด Spacebar</p>}
             <CameraControls track={track} features={features} />
+            {lowRes && (
+              <p className="low-res-note" role="status">
+                กล้องนี้ส่งภาพแค่ {mode?.width}×{mode?.height} รูปจะไม่คม
+                <span>ถ้าเป็น Sony ผ่าน Imaging Edge Webcam ให้ต่อผ่าน HDMI capture card แทน</span>
+              </p>
+            )}
             <div className="panel-tools">
               <CameraPicker
                 devices={camera.devices}
