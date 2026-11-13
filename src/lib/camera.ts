@@ -6,7 +6,7 @@ import {
   MOBILE_CAMERA_IDEAL_WIDTH,
 } from '../config/app';
 import { isMobileDevice } from './device';
-import { releaseTetherTrack } from './tether';
+import { markVideoFrame } from './sharpen';
 
 export type CameraErrorKind =
   | 'denied' // user or OS blocked the permission
@@ -83,10 +83,7 @@ export async function openCamera(deviceId?: string): Promise<MediaStream> {
 export const LOW_RES_HEIGHT = 720;
 
 export function stopStream(stream: MediaStream | null | undefined): void {
-  stream?.getTracks().forEach((t) => {
-    t.stop();
-    releaseTetherTrack(t);
-  });
+  stream?.getTracks().forEach((t) => t.stop());
 }
 
 /** Video inputs. Labels are only filled in after permission was granted. */
@@ -121,7 +118,7 @@ export function captureFrame(video: HTMLVideoElement): HTMLCanvasElement {
   if (!ctx) throw new Error('2D canvas not available');
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return canvas;
+  return markVideoFrame(canvas);
 }
 
 /** Resolves once the video element has real frame dimensions. */

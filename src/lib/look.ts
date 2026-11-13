@@ -15,7 +15,7 @@ import { applyFilter, type FilterId } from './filters';
 import { createGif } from './gif';
 import { composeScene, loadSceneImage, personCoverage } from './scene';
 import { segmentPerson } from './segment';
-import { sharpen, sharpenFor } from './sharpen';
+import { isVideoFrame, sharpen, sharpenFor } from './sharpen';
 
 export interface Look {
   /** Use the magic background (when available for a shot). */
@@ -80,7 +80,11 @@ function cropToAspect(
     ctx.scale(-1, 1);
   }
   ctx.drawImage(src, (w - cw) / 2, (h - ch) * CROP_FOCAL_Y, cw, ch, 0, 0, outW, outH);
-  if (enlarge) sharpen(canvas, sharpenFor(outH / ch));
+  // Video frames only (phone stills are already sharp).
+  if (enlarge && isVideoFrame(src)) {
+    const [amount, radius] = sharpenFor(outH / ch);
+    sharpen(canvas, amount, radius);
+  }
   return canvas;
 }
 
