@@ -16,9 +16,18 @@ export interface BoothSettings {
   mirrorPreview: boolean;
   /** Ambient motion on the landing background paused by staff. */
   motionPaused: boolean;
+  /** Shoot with the real camera through the Sony Bridge (tether/sony-bridge.mjs). */
+  tetherEnabled: boolean;
+  /** Where the bridge listens. */
+  tetherUrl: string;
 }
 
-const DEFAULTS: BoothSettings = { mirrorPreview: false, motionPaused: false };
+const DEFAULTS: BoothSettings = {
+  mirrorPreview: false,
+  motionPaused: false,
+  tetherEnabled: false,
+  tetherUrl: 'http://127.0.0.1:5123',
+};
 
 export function loadSettings(): BoothSettings {
   try {
@@ -29,6 +38,8 @@ export function loadSettings(): BoothSettings {
       cameraId: typeof v.cameraId === 'string' && v.cameraId ? v.cameraId : undefined,
       mirrorPreview: typeof v.mirrorPreview === 'boolean' ? v.mirrorPreview : DEFAULTS.mirrorPreview,
       motionPaused: typeof v.motionPaused === 'boolean' ? v.motionPaused : DEFAULTS.motionPaused,
+      tetherEnabled: typeof v.tetherEnabled === 'boolean' ? v.tetherEnabled : DEFAULTS.tetherEnabled,
+      tetherUrl: typeof v.tetherUrl === 'string' && /^https?:\/\//.test(v.tetherUrl) ? v.tetherUrl : DEFAULTS.tetherUrl,
     };
   } catch {
     return { ...DEFAULTS };

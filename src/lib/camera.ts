@@ -6,6 +6,7 @@ import {
   MOBILE_CAMERA_IDEAL_WIDTH,
 } from '../config/app';
 import { isMobileDevice } from './device';
+import { releaseTetherTrack } from './tether';
 
 export type CameraErrorKind =
   | 'denied' // user or OS blocked the permission
@@ -119,7 +120,10 @@ async function useBestMode(stream: MediaStream): Promise<void> {
 export const LOW_RES_HEIGHT = 720;
 
 export function stopStream(stream: MediaStream | null | undefined): void {
-  stream?.getTracks().forEach((t) => t.stop());
+  stream?.getTracks().forEach((t) => {
+    t.stop();
+    releaseTetherTrack(t);
+  });
 }
 
 /** Video inputs. Labels are only filled in after permission was granted. */

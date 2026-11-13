@@ -6,6 +6,7 @@ import { MotionToggle } from './components/MotionToggle';
 import { SoundToggle } from './components/SoundToggle';
 import { StarField } from './components/StarField';
 import { useCamera } from './hooks/useCamera';
+import { useTether } from './hooks/useTether';
 import { useIdleTimer } from './hooks/useIdleTimer';
 import { useWakeLock } from './hooks/useWakeLock';
 import { loadSettings, saveSettings } from './lib/boothSettings';
@@ -82,7 +83,10 @@ export default function App() {
 
   // Keep the camera open from frame selection through the result screen,
   // so "ถ่ายใหม่" is instant and permission is asked early.
-  const camera = useCamera(screen === 'frames' || screen === 'capture' || screen === 'result');
+  const boothOpen = screen === 'frames' || screen === 'capture' || screen === 'result';
+  // Sony Bridge (real shutter over USB), when staff turned it on.
+  const tether = useTether(boothOpen);
+  const camera = useCamera(boothOpen, tether.hasLiveview ? tether.url : null);
 
   // Print templates from public/frames/templates.json + built-in frames.
   useEffect(() => {
@@ -276,6 +280,7 @@ export default function App() {
         <CaptureScreen
           frame={frame}
           camera={camera}
+          tether={tether}
           onShot={handleShot}
           onComplete={handleCaptureComplete}
           onBack={() => setScreen('frames')}
